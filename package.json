@@ -1,0 +1,22 @@
+{
+  "name": "movie-log",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "start:server": "cd apps/server && npm run start:dev",
+    "start:client": "cd apps/client && npm start",
+    "build:server": "cd apps/server && npm run build",
+    "build:client": "cd apps/client && npm run build",
+    "start": "concurrently \"npm run start:server\" \"npm run start:client\""
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/parser": "^8.51.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8"
+  }
+}
