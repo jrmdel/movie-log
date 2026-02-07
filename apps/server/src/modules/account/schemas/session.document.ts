@@ -1,0 +1,24 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+import { ISession } from 'src/modules/account/account.model';
+
+@Schema({
+  timestamps: { createdAt: true, updatedAt: false },
+  collection: 'sessions',
+  lean: true,
+})
+export class SessionDocument extends Document<string> implements ISession {
+  @Prop({ required: true })
+  userId: string;
+
+  @Prop({ required: true })
+  refreshToken: string;
+
+  @Prop({ type: Date })
+  createdAt: Date;
+
+  @Prop({ required: true })
+  expiresAt: Date;
+}
+
+export const SessionSchema = SchemaFactory.createForClass(SessionDocument);
