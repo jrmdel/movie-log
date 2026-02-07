@@ -4,7 +4,7 @@ interface IHealthStatus {
   status: 'OK' | 'NOT_OK';
 }
 
-@Controller()
+@Controller({ version: '1' })
 export class AppController {
   @Get('health')
   checkStatus(): IHealthStatus {
