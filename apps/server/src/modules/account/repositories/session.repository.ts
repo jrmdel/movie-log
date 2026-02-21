@@ -1,9 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  ICreateSessionDocument,
-  ISession,
-} from 'src/modules/account/account.model';
+import { ICreateSessionDocument, ISession } from 'src/modules/account/account.model';
 import { SessionDocument } from 'src/modules/account/schemas/session.document';
 
 export class SessionRepository {
@@ -17,9 +14,7 @@ export class SessionRepository {
     return createdSession.toObject();
   }
 
-  public async findByRefreshToken(
-    refreshToken: string,
-  ): Promise<ISession | null> {
+  public async findByRefreshToken(refreshToken: string): Promise<ISession | null> {
     return this.model.findOne({ refreshToken }).lean().exec();
   }
 

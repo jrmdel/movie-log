@@ -1,9 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { compare, genSalt, hash } from 'bcrypt';
-import {
-  IBaseAccount,
-  ICreateAccount,
-} from 'src/modules/account/account.model';
+import { IBaseAccount, ICreateAccount } from 'src/modules/account/account.model';
 import { AccountRepository } from 'src/modules/account/repositories/account.repository';
 
 const BCRYPT_SALT_ROUNDS = 10;
@@ -23,10 +20,7 @@ export class AccountService {
     });
   }
 
-  public async validateUser(
-    email: string,
-    password: string,
-  ): Promise<IBaseAccount> {
+  public async validateUser(email: string, password: string): Promise<IBaseAccount> {
     const user = await this.accountRepository.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

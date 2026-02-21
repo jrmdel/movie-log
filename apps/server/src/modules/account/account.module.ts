@@ -7,14 +7,8 @@ import { AccountService } from 'src/modules/account/account.service';
 import { AuthService } from 'src/modules/account/auth.service';
 import { AccountRepository } from 'src/modules/account/repositories/account.repository';
 import { SessionRepository } from 'src/modules/account/repositories/session.repository';
-import {
-  AccountDocument,
-  AccountSchema,
-} from 'src/modules/account/schemas/account.document';
-import {
-  SessionDocument,
-  SessionSchema,
-} from 'src/modules/account/schemas/session.document';
+import { AccountDocument, AccountSchema } from 'src/modules/account/schemas/account.document';
+import { SessionDocument, SessionSchema } from 'src/modules/account/schemas/session.document';
 
 @Module({
   imports: [

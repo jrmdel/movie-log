@@ -8,12 +8,7 @@ import { MovieService } from 'src/modules/movie/movie.service';
 import { ImdbProvider } from 'src/modules/movie/providers/imdb.provider';
 
 @Module({
-  imports: [
-    HttpModule,
-    MongooseModule.forFeature([
-      { name: MovieDocument.name, schema: MovieSchema },
-    ]),
-  ],
+  imports: [HttpModule, MongooseModule.forFeature([{ name: MovieDocument.name, schema: MovieSchema }])],
   controllers: [MovieController],
   providers: [MovieRepository, MovieService, ImdbProvider],
 })

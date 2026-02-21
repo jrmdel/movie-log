@@ -50,9 +50,7 @@ describe('AppController', () => {
         }),
       } as ExecutionContext;
 
-      await expect(guard.canActivate(context)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should accept an authenticated request', async () => {

@@ -1,9 +1,5 @@
 import { IsNotEmpty, IsString } from 'class-validator';
-import {
-  IAccountLogin,
-  ICreateAccount,
-  ILoginResponse,
-} from 'src/modules/account/account.model';
+import { IAccountLogin, ICreateAccount, ILoginResponse } from 'src/modules/account/account.model';
 
 export class CreateAccountDto implements ICreateAccount {
   @IsString()

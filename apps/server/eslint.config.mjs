@@ -26,14 +26,35 @@ export default tseslint.config(
   },
   {
     rules: {
-      '@typescript-eslint/interface-name-prefix': 'off',
-      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: 'interface',
+          format: ['PascalCase'],
+          custom: {
+            regex: '^I[A-Z]',
+            match: true,
+          },
+        },
+      ],
+      '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/require-await': 'error',
       'prettier/prettier': ['error', { endOfLine: 'auto', printWidth: 120, singleQuote: true, trailingComma: 'all' }],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['./', '../'],
+              message: 'Relative imports are not allowed.',
+            },
+          ],
+        },
+      ],
     },
   },
 );
