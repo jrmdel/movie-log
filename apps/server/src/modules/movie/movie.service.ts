@@ -5,8 +5,8 @@ import { ImdbProvider } from 'src/modules/movie/providers/imdb.provider';
 export class MovieService {
   constructor(private readonly imdbProvider: ImdbProvider) {}
 
-  searchMovies(query: string, limit?: number) {
-    return this.imdbProvider.searchTitles(query, limit);
+  async searchMovies(query: string, limit?: number) {
+    return this.imdbProvider.searchMovies(query, limit);
   }
 
   getMovieDetails(id: string) {
