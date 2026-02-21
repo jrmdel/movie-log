@@ -6,6 +6,28 @@ You are an expert in TypeScript, NestJS, Angular, and scalable web application d
 - Prefer type inference when the type is obvious
 - Avoid the `any` type; use `unknown` when type is uncertain
 
+### Code Documentation
+
+- JSDoc Usage:
+  Only add JSDoc for **complex tools or utilities** where the purpose or usage isn’t immediately clear from the name or implementation. For simple functions, **good naming is sufficient**.
+
+### Exports
+
+- Services:
+  A service should **only export its class**. Never export `const`, `type`, or `interface` directly from a service file.
+- Constants:
+  `const` values should be defined at the **top of the file** where they are used. If they are needed elsewhere, export them from a dedicated `xx.constants.ts` file.
+- Types, Enums, and Interfaces:
+  Define these in a `xx.model.ts` file.
+  - Interfaces: Prefix with `I` (e.g., `ICat`).
+  - Enums: Prefix with `E` (e.g., `ECat`).
+  - Types: No prefix (e.g., `Cat`).
+  - Enum Types: Derive types from enums:
+    ```ts
+    export type Cat = keyof typeof ECat;
+    ```
+  - Always prefer the **type derived from the enum** for typing. Use the enum itself only in code to reference values, never for typing.
+
 ## Angular Best Practices
 
 - Always use standalone components over NgModules
@@ -53,3 +75,61 @@ You are an expert in TypeScript, NestJS, Angular, and scalable web application d
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+## NestJS Best Practices
+
+### HTTP Calls
+
+- Always type HTTP calls explicitly:
+  ```ts
+  httpService.get<ICat>(...);
+  ```
+
+### Mongoose Integration
+
+- Document Validation:
+  Use Mongoose decorators for validation:
+  ```ts
+  @Prop({ required: true, type: String, enum: Object.values(ECatType) })
+  ```
+- Schema Classes:
+  Follow this pattern for Mongoose document classes:
+
+  ```ts
+  @Schema({ timestamps: true, collection: 'xxxxs', lean: true })
+  export class XxxxDocument extends Document<string> implements IXxxx {
+    ...
+  }
+
+  export const XxxxSchema = SchemaFactory.createForClass(XxxxDocument);
+  ```
+
+### DTOs (Data Transfer Objects)
+
+- File Structure:
+  Place DTOs in a `xx.dto.ts` file. Each DTO must **implement an interface** (create it in `xx.model.ts` if it doesn’t exist).
+- Validation:
+  Use **class-validator** decorators for validation.
+- Nested Objects:
+  For nested objects in DTOs:
+  - Create a **separate DTO** for the nested object.
+  - Use `@Type(() => SubDto)` and `@ValidateNested()` for proper validation.
+  - Type the field using the **interface**:
+    ```ts
+    @Type(() => FieldDto)
+    @ValidateNested()
+    @IsNotEmptyObject()
+    myField: IField;
+    ```
+
+### Controllers
+
+(Reserved for future rules)
+
+### Modules
+
+(Reserved for future rules)
+
+### Providers
+
+(Reserved for future rules)
