@@ -1,20 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
-import { ISearchTitle, ISearchTitleParams, ISearchTitleResponse } from 'src/modules/movie/providers/imdb.model';
-
-export interface IMovieDetails {
-  id: string;
-  title: string;
-  year?: number;
-  description?: string;
-  stars?: string[];
-  genres?: string[];
-  country?: string;
-  runtime?: number;
-  directors?: string[];
-  imdbRating?: number;
-}
+import { ISearchTitle, ISearchTitleParams, ISearchTitleResponse, ITitle } from 'src/modules/movie/providers/imdb.model';
 
 @Injectable()
 export class ImdbProvider {
@@ -38,24 +25,14 @@ export class ImdbProvider {
     }
   }
 
-  async getMovieDetails(id: string): Promise<IMovieDetails> {
+  async getMovieDetails(id: string): Promise<ITitle> {
     try {
-      const response = await firstValueFrom(this.httpService.get(`${this.baseUrl}/titles/${id}`));
+      const url = `${this.baseUrl}/titles/${id}`;
 
-      const data = response.data;
+      const request$ = this.httpService.get<ITitle>(url);
+      const response = await firstValueFrom(request$);
 
-      return {
-        id: data.id,
-        title: data.title,
-        year: data.year,
-        description: data.description,
-        stars: data.stars,
-        genres: data.genres,
-        country: data.country,
-        runtime: data.runtime,
-        directors: data.directors,
-        imdbRating: data.imdbRating,
-      };
+      return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch movie details: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
