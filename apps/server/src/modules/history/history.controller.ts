@@ -1,4 +1,6 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Request, UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import type { IAuthenticatedRequest } from 'src/common/interfaces/authenticated-request';
 import { HistoryService } from 'src/modules/history/history.service';
 
 @Controller('history')
@@ -16,7 +18,9 @@ export class HistoryController {
   }
 
   @Post()
-  create(@Body() data: any) {
-    return this.historyService.create(data);
+  @UseGuards(AuthGuard)
+  create(@Request() req: IAuthenticatedRequest, @Body() data: any) {
+    const userId = req.user?._id;
+    return this.historyService.create({ ...data, userId });
   }
 }

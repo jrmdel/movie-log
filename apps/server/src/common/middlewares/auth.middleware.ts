@@ -1,41 +1,36 @@
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Response } from 'express';
-import { IRequestWithUser } from 'src/common/types/auth.types';
+import { IAuthenticatedRequest } from 'src/common/interfaces/authenticated-request';
 import { AuthService } from 'src/modules/account/auth.service';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  private readonly logger = new Logger(AuthMiddleware.name);
+  private logger = new Logger('Auth');
 
   constructor(private readonly authService: AuthService) {}
 
-  async use(
-    request: IRequestWithUser,
-    _response: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  async use(request: IAuthenticatedRequest, _: Response, next: NextFunction): Promise<void> {
     const authHeader = request.headers.authorization;
 
-    if (!authHeader || typeof authHeader !== 'string') {
-      request.user = undefined;
-      next();
-      return;
+    if (!authHeader) {
+      return next();
     }
 
     const [scheme, token] = authHeader.split(' ');
+
     if (scheme !== 'Bearer' || !token) {
-      request.user = undefined;
-      next();
-      return;
+      this.logger.warn('Invalid authorization header format');
+      return next();
     }
 
-    const user = await this.authService.resolveAuthenticatedUser(token);
-    request.user = user ?? undefined;
-
-    if (request.user) {
-      this.logger.debug(
-        `Authenticated request for user ${request.user._id} (${request.user.email})`,
-      );
+    try {
+      const user = await this.authService.resolveAuthenticatedUser(token);
+      request.user = user ?? undefined;
+      if (request.user) {
+        this.logger.debug(`Authenticated request for user ${request.user._id} (${request.user.email})`);
+      }
+    } catch (error) {
+      this.logger.warn(`Token verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
     next();

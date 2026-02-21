@@ -37,7 +37,6 @@ import { MovieModule } from 'src/modules/movie/movie.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestMiddleware).forRoutes('');
-    consumer.apply(AuthMiddleware).forRoutes('');
+    consumer.apply(RequestMiddleware).forRoutes('').apply(AuthMiddleware).forRoutes('');
   }
 }

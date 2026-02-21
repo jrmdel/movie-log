@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AccountController } from 'src/modules/account/account.controller';
 import { AccountService } from 'src/modules/account/account.service';
@@ -16,21 +14,9 @@ import { SessionDocument, SessionSchema } from 'src/modules/account/schemas/sess
       { name: AccountDocument.name, schema: AccountSchema },
       { name: SessionDocument.name, schema: SessionSchema },
     ]),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-      }),
-      inject: [ConfigService],
-    }),
   ],
   controllers: [AccountController],
-  providers: [
-    AccountService,
-    AuthService,
-    AccountRepository,
-    SessionRepository,
-  ],
+  providers: [AccountService, AuthService, AccountRepository, SessionRepository],
   exports: [AccountService, AuthService, AccountRepository],
 })
 export class AccountModule {}
