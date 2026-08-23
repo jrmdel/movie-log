@@ -1,14 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { IAuthenticatedUser, IUserPayload } from 'src/common/types/auth.types';
-import {
-  IAccountLogin,
-  IBaseAccount,
-  ILoginResponse,
-} from 'src/modules/account/account.model';
+import { IAccountLogin, IBaseAccount, ILoginResponse } from 'src/modules/account/account.model';
+import { AccountService } from 'src/modules/account/account.service';
 import { AccountRepository } from 'src/modules/account/repositories/account.repository';
 import { SessionRepository } from 'src/modules/account/repositories/session.repository';
-import { AccountService } from './account.service';
 
 const SEVEN_DAYS_IN_MS = 604800000;
 
@@ -22,18 +18,14 @@ export class AuthService {
   ) {}
 
   public async authenticate(login: IAccountLogin): Promise<ILoginResponse> {
-    const user = await this.accountService.validateUser(
-      login.email,
-      login.password,
-    );
+    const user = await this.accountService.validateUser(login.email, login.password);
     const tokens = this.generateTokens(user);
     await this.storeRefreshToken(user._id, tokens.refreshToken);
     return tokens;
   }
 
   public async refreshSession(refreshToken: string): Promise<ILoginResponse> {
-    const session =
-      await this.sessionRepository.findByRefreshToken(refreshToken);
+    const session = await this.sessionRepository.findByRefreshToken(refreshToken);
     if (!session || session.expiresAt < new Date()) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -60,18 +52,13 @@ export class AuthService {
     return tokens;
   }
 
-  public async resolveAuthenticatedUser(
-    token: string,
-  ): Promise<IAuthenticatedUser | null> {
+  public async resolveAuthenticatedUser(token: string): Promise<IAuthenticatedUser | null> {
     try {
       const payload = this.jwtService.verify<IUserPayload>(token);
       const userId = payload.sub ?? payload._id;
       const userEmail = payload.email ?? '';
 
-      const dbUser = await this.accountRepository.findBySubOrEmail(
-        userId ?? '',
-        userEmail,
-      );
+      const dbUser = await this.accountRepository.findBySubOrEmail(userId ?? '', userEmail);
 
       if (!dbUser) {
         return null;
@@ -88,22 +75,13 @@ export class AuthService {
   }
 
   private generateTokens(user: IBaseAccount): ILoginResponse {
-    const accessToken = this.jwtService.sign(
-      { sub: user._id, email: user.email },
-      { expiresIn: '15m' },
-    );
-    const refreshToken = this.jwtService.sign(
-      { sub: user._id },
-      { expiresIn: '7d' },
-    );
+    const accessToken = this.jwtService.sign({ sub: user._id, email: user.email }, { expiresIn: '15m' });
+    const refreshToken = this.jwtService.sign({ sub: user._id }, { expiresIn: '7d' });
 
     return { accessToken, refreshToken };
   }
 
-  private async storeRefreshToken(
-    userId: string,
-    refreshToken: string,
-  ): Promise<void> {
+  private async storeRefreshToken(userId: string, refreshToken: string): Promise<void> {
     const expiresAt = new Date(Date.now() + SEVEN_DAYS_IN_MS);
     await this.sessionRepository.create({
       userId,

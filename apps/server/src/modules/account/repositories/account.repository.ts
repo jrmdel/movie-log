@@ -22,10 +22,7 @@ export class AccountRepository {
     return this.model.findOne({ email }).lean().exec();
   }
 
-  public async findBySubOrEmail(
-    sub: string,
-    email: string,
-  ): Promise<IAccount | null> {
+  public async findBySubOrEmail(sub: string, email: string): Promise<IAccount | null> {
     return this.model
       .findOne({ $or: [{ _id: sub }, { email }] })
       .lean()
