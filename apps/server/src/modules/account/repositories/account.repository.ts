@@ -17,7 +17,21 @@ export class AccountRepository {
     return createdAccount.toObject();
   }
 
+  public async findById(id: string): Promise<IAccount | null> {
+    return this.model.findById(id).lean().exec();
+  }
+
   public async findByEmail(email: string): Promise<IAccount | null> {
     return this.model.findOne({ email }).lean().exec();
+  }
+
+  public async findBySubOrEmail(
+    sub: string,
+    email: string,
+  ): Promise<IAccount | null> {
+    return this.model
+      .findOne({ $or: [{ _id: sub }, { email }] })
+      .lean()
+      .exec();
   }
 }
