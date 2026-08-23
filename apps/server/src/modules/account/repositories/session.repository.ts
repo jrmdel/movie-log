@@ -22,4 +22,19 @@ export class SessionRepository {
   ): Promise<ISession | null> {
     return this.model.findOne({ refreshToken }).lean().exec();
   }
+
+  public async updateRefreshToken(
+    currentRefreshToken: string,
+    nextRefreshToken: string,
+    expiresAt: Date,
+  ): Promise<ISession | null> {
+    return this.model
+      .findOneAndUpdate(
+        { refreshToken: currentRefreshToken },
+        { refreshToken: nextRefreshToken, expiresAt },
+        { new: true },
+      )
+      .lean()
+      .exec();
+  }
 }

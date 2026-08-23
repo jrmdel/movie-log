@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AccountController } from 'src/modules/account/account.controller';
 import { AccountService } from 'src/modules/account/account.service';
+import { AuthService } from 'src/modules/account/auth.service';
 import { AccountRepository } from 'src/modules/account/repositories/account.repository';
 import { SessionRepository } from 'src/modules/account/repositories/session.repository';
 import {
@@ -30,6 +31,12 @@ import {
     }),
   ],
   controllers: [AccountController],
-  providers: [AccountService, AccountRepository, SessionRepository],
+  providers: [
+    AccountService,
+    AuthService,
+    AccountRepository,
+    SessionRepository,
+  ],
+  exports: [AccountService, AuthService, AccountRepository],
 })
 export class AccountModule {}
