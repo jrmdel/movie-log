@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 import { EListType, IListDocument, type ListType } from 'src/modules/list/list.model';
 
 @Schema({ timestamps: true, collection: 'lists', lean: true })
 export class ListDocument extends Document<string> implements IListDocument {
-  @Prop({ required: true, type: Types.ObjectId, ref: 'AccountDocument' })
+  @Prop({ required: true, type: String, ref: 'AccountDocument' })
   accountId: string;
 
   @Prop({ required: true, type: String })
@@ -16,14 +16,11 @@ export class ListDocument extends Document<string> implements IListDocument {
   @Prop({ required: true, type: String, enum: Object.values(EListType) })
   type: ListType;
 
-  @Prop({ required: true, type: [Types.ObjectId], ref: 'MovieDocument', default: [] })
+  @Prop({ required: true, type: [String], ref: 'MovieDocument', default: [] })
   movieIds: string[];
 
-  @Prop({ required: true, type: Date, default: Date.now })
-  createdAt: Date;
-
-  @Prop({ required: true, type: Date, default: Date.now })
-  updatedAt: Date;
+  declare createdAt: Date;
+  declare updatedAt: Date;
 }
 
 export const ListSchema = SchemaFactory.createForClass(ListDocument);

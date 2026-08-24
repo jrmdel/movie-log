@@ -1,14 +1,13 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Request } from 'express';
-import { IAuthenticatedUser } from 'src/common/types/auth.types';
-import { AuthService } from 'src/modules/account/auth.service';
+import type { IAuthenticatedRequest } from 'src/common/types/auth.types';
+import { TokenService } from 'src/modules/account/token.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly tokenService: TokenService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { user?: IAuthenticatedUser }>();
+    const request = context.switchToHttp().getRequest<IAuthenticatedRequest>();
 
     const authHeader = request.headers.authorization;
     if (!authHeader || typeof authHeader !== 'string') {
@@ -20,7 +19,7 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Authentication required');
     }
 
-    const user = await this.authService.resolveAuthenticatedUser(token);
+    const user = await this.tokenService.resolveAuthenticatedUser(token);
     if (!user) {
       throw new UnauthorizedException('Invalid or expired token');
     }

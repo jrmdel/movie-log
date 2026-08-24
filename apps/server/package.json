@@ -58,7 +58,8 @@
   "jest": {
     "preset": "ts-jest",
     "moduleFileExtensions": [
-      "ts"
+      "ts",
+      "js"
     ],
     "rootDir": "src",
     "testRegex": ".*\\.test\\.ts$",

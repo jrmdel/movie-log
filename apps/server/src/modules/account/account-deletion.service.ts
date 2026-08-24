@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { HistoryService } from 'src/modules/history/history.service';
 import { AccountRepository } from 'src/modules/account/repositories/account.repository';
 import { SessionRepository } from 'src/modules/account/repositories/session.repository';
-import { HistoryService } from 'src/modules/history/history.service';
 import { ListService } from 'src/modules/list/list.service';
 
 @Injectable()

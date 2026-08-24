@@ -1,18 +1,20 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { compare, genSalt, hash } from 'bcrypt';
+import { BaseDatabaseService } from 'src/common/base/base-database.service';
 import { IBaseAccount, ICreateAccount } from 'src/modules/account/account.model';
 import { AccountRepository } from 'src/modules/account/repositories/account.repository';
 import { ListService } from 'src/modules/list/list.service';
 
 const BCRYPT_SALT_ROUNDS = 10;
-const MONGO_DUPLICATE_KEY_ERROR_CODE = 11000;
 
 @Injectable()
-export class AccountService {
+export class AccountService extends BaseDatabaseService {
   constructor(
     private readonly accountRepository: AccountRepository,
     private readonly listService: ListService,
-  ) {}
+  ) {
+    super();
+  }
 
   public async createAccount(body: ICreateAccount): Promise<void> {
     const salt = await genSalt(BCRYPT_SALT_ROUNDS);
@@ -47,13 +49,5 @@ export class AccountService {
       username: user.username,
       email: user.email,
     };
-  }
-
-  private isDuplicateKeyError(error: unknown): boolean {
-    return (
-      typeof error === 'object' &&
-      error !== null &&
-      (error as { code?: number }).code === MONGO_DUPLICATE_KEY_ERROR_CODE
-    );
   }
 }

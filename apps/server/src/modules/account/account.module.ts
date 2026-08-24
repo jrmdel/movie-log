@@ -10,11 +10,13 @@ import { AccountRepository } from 'src/modules/account/repositories/account.repo
 import { SessionRepository } from 'src/modules/account/repositories/session.repository';
 import { AccountDocument, AccountSchema } from 'src/modules/account/schemas/account.document';
 import { SessionDocument, SessionSchema } from 'src/modules/account/schemas/session.document';
+import { TokenModule } from 'src/modules/account/token.module';
 
 @Module({
   imports: [
     HistoryModule,
     ListModule,
+    TokenModule,
     MongooseModule.forFeature([
       { name: AccountDocument.name, schema: AccountSchema },
       { name: SessionDocument.name, schema: SessionSchema },

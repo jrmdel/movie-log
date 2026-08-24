@@ -1,5 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { HistoryDocument } from 'src/modules/history/history.document';
 import { IHistory, IHistoryDocument } from 'src/modules/history/history.model';
 
@@ -15,6 +15,9 @@ export class HistoryRepository {
   }
 
   findById(id: string): Promise<IHistoryDocument | null> {
+    if (!Types.ObjectId.isValid(id)) {
+      return Promise.resolve(null);
+    }
     return this.model.findById(id).lean().exec();
   }
 

@@ -1,21 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { BaseDatabaseService } from 'src/common/base/base-database.service';
 import { IMovie, IMovieDetails, IMovieDocument } from 'src/modules/movie/movie.model';
 import { MovieRepository } from 'src/modules/movie/movie.repository';
-import { ImdbProvider } from 'src/modules/movie/providers/imdb.provider';
+import { ImdbSuggestionProvider } from 'src/modules/movie/providers/imdb-suggestion.provider';
+import { OmdbProvider } from 'src/modules/movie/providers/omdb.provider';
 
 @Injectable()
-export class MovieService {
+export class MovieService extends BaseDatabaseService {
   constructor(
-    private readonly imdbProvider: ImdbProvider,
+    private readonly imdbSuggestionProvider: ImdbSuggestionProvider,
+    private readonly omdbProvider: OmdbProvider,
     private readonly movieRepository: MovieRepository,
-  ) {}
+  ) {
+    super();
+  }
 
   async searchMovies(query: string, limit?: number): Promise<IMovie[]> {
-    return this.imdbProvider.searchMovies(query, limit);
+    return this.imdbSuggestionProvider.searchMovies(query, limit);
   }
 
   getMovieDetails(id: string): Promise<IMovieDetails> {
-    return this.imdbProvider.getMovieDetails(id);
+    return this.omdbProvider.getMovieDetails(id);
   }
 
   /** Looks up a cached movie by its IMDb id, fetching and persisting it from the provider on a cache miss. */
@@ -25,8 +30,15 @@ export class MovieService {
       return existing;
     }
 
-    const details = await this.imdbProvider.getMovieDetails(externalId);
-    return this.movieRepository.create(details);
+    try {
+      const details = await this.omdbProvider.getMovieDetails(externalId);
+      return this.movieRepository.create(details);
+    } catch (error) {
+      if (this.isDuplicateKeyError(error)) {
+        throw new ConflictException('Movie with this external ID already exists');
+      }
+      throw error;
+    }
   }
 
   /** Accepts either an internal movie id or an IMDb external id, transparently caching the latter. */

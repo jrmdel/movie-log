@@ -2,17 +2,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { IMovieDetails, IMovieDocument } from 'src/modules/movie/movie.model';
 import { MovieRepository } from 'src/modules/movie/movie.repository';
 import { MovieService } from 'src/modules/movie/movie.service';
-import { ImdbProvider } from 'src/modules/movie/providers/imdb.provider';
+import { ImdbSuggestionProvider } from 'src/modules/movie/providers/imdb-suggestion.provider';
+import { OmdbProvider } from 'src/modules/movie/providers/omdb.provider';
 
 describe('MovieService', () => {
   let service: MovieService;
-  let imdbProvider: jest.Mocked<ImdbProvider>;
+  let imdbSuggestionProvider: jest.Mocked<ImdbSuggestionProvider>;
+  let omdbProvider: jest.Mocked<OmdbProvider>;
   let movieRepository: jest.Mocked<MovieRepository>;
 
   const movieDetails: IMovieDetails = {
     externalId: 'tt0816692',
     title: 'Interstellar',
-    originalTitle: 'Interstellar',
     year: 2014,
     rating: 8.7,
     directors: ['Christopher Nolan'],
@@ -31,7 +32,11 @@ describe('MovieService', () => {
       providers: [
         MovieService,
         {
-          provide: ImdbProvider,
+          provide: ImdbSuggestionProvider,
+          useValue: { searchMovies: jest.fn() },
+        },
+        {
+          provide: OmdbProvider,
           useValue: { searchMovies: jest.fn(), getMovieDetails: jest.fn() },
         },
         {
@@ -42,8 +47,21 @@ describe('MovieService', () => {
     }).compile();
 
     service = module.get(MovieService);
-    imdbProvider = module.get(ImdbProvider);
+    imdbSuggestionProvider = module.get(ImdbSuggestionProvider);
+    omdbProvider = module.get(OmdbProvider);
     movieRepository = module.get(MovieRepository);
+  });
+
+  describe('searchMovies', () => {
+    it('delegates to the IMDb suggestion provider', async () => {
+      const movies = [{ externalId: 'tt0816692', title: 'Interstellar', year: 2014 }];
+      imdbSuggestionProvider.searchMovies.mockResolvedValue(movies);
+
+      const result = await service.searchMovies('interstellar', 5);
+
+      expect(imdbSuggestionProvider.searchMovies).toHaveBeenCalledWith('interstellar', 5);
+      expect(result).toEqual(movies);
+    });
   });
 
   describe('getOrCreateByExternalId', () => {
@@ -53,18 +71,18 @@ describe('MovieService', () => {
       const result = await service.getOrCreateByExternalId(movieDetails.externalId);
 
       expect(result).toEqual(movieDocument);
-      expect(imdbProvider.getMovieDetails).not.toHaveBeenCalled();
+      expect(omdbProvider.getMovieDetails).not.toHaveBeenCalled();
       expect(movieRepository.create).not.toHaveBeenCalled();
     });
 
     it('fetches from the provider and persists it on a cache miss', async () => {
       movieRepository.findByExternalId.mockResolvedValue(null);
-      imdbProvider.getMovieDetails.mockResolvedValue(movieDetails);
+      omdbProvider.getMovieDetails.mockResolvedValue(movieDetails);
       movieRepository.create.mockResolvedValue(movieDocument);
 
       const result = await service.getOrCreateByExternalId(movieDetails.externalId);
 
-      expect(imdbProvider.getMovieDetails).toHaveBeenCalledWith(movieDetails.externalId);
+      expect(omdbProvider.getMovieDetails).toHaveBeenCalledWith(movieDetails.externalId);
       expect(movieRepository.create).toHaveBeenCalledWith(movieDetails);
       expect(result).toEqual(movieDocument);
     });
@@ -83,13 +101,13 @@ describe('MovieService', () => {
     it('falls back to get-or-create by external id when no internal match is found', async () => {
       movieRepository.findById.mockResolvedValue(null);
       movieRepository.findByExternalId.mockResolvedValue(null);
-      imdbProvider.getMovieDetails.mockResolvedValue(movieDetails);
+      omdbProvider.getMovieDetails.mockResolvedValue(movieDetails);
       movieRepository.create.mockResolvedValue(movieDocument);
 
       const result = await service.resolveMovie(movieDetails.externalId);
 
       expect(result).toEqual(movieDocument);
-      expect(imdbProvider.getMovieDetails).toHaveBeenCalledWith(movieDetails.externalId);
+      expect(omdbProvider.getMovieDetails).toHaveBeenCalledWith(movieDetails.externalId);
     });
   });
 });

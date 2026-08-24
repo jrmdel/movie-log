@@ -8,14 +8,11 @@ import { IMovieDocument } from 'src/modules/movie/movie.model';
   lean: true,
 })
 export class MovieDocument extends Document<string> implements IMovieDocument {
-  @Prop({ required: true, type: String })
+  @Prop({ required: true, type: String, unique: true })
   externalId: string;
 
   @Prop({ required: true, type: String })
   title: string;
-
-  @Prop({ required: true, type: String })
-  originalTitle: string;
 
   @Prop({ required: true, type: Number })
   year: number;
@@ -32,8 +29,7 @@ export class MovieDocument extends Document<string> implements IMovieDocument {
   @Prop({ required: true, type: Number })
   rating: number;
 
-  @Prop({ required: true, type: Date, default: Date.now })
-  createdAt: Date;
+  declare createdAt: Date;
 }
 
 export const MovieSchema = SchemaFactory.createForClass(MovieDocument);

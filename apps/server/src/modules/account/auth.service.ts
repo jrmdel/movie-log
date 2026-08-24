@@ -1,8 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { createHash } from 'crypto';
-import { IAuthenticatedUser, IUserPayload } from 'src/common/types/auth.types';
-import { IAccountLogin, IBaseAccount, ILoginResponse } from 'src/modules/account/account.model';
+import { IAccount, IAccountLogin, IBaseAccount, ILoginResponse } from 'src/modules/account/account.model';
 import { AccountService } from 'src/modules/account/account.service';
 import { AccountRepository } from 'src/modules/account/repositories/account.repository';
 import { SessionRepository } from 'src/modules/account/repositories/session.repository';
@@ -31,8 +30,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const payload = this.jwtService.verify<{ sub: string }>(refreshToken);
-    const account = await this.accountRepository.findById(payload.sub);
+    const account = await this.getAccount(refreshToken);
     if (!account) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -57,25 +55,12 @@ export class AuthService {
     await this.sessionRepository.deleteByRefreshTokenHash(this.hashToken(refreshToken), userId);
   }
 
-  public async resolveAuthenticatedUser(token: string): Promise<IAuthenticatedUser | null> {
+  private async getAccount(refreshToken: string): Promise<IAccount | null> {
     try {
-      const payload = this.jwtService.verify<IUserPayload>(token);
-      const userId = payload.sub ?? payload._id;
-      const userEmail = payload.email ?? '';
-
-      const dbUser = await this.accountRepository.findBySubOrEmail(userId ?? '', userEmail);
-
-      if (!dbUser) {
-        return null;
-      }
-
-      return {
-        _id: dbUser._id.toString(),
-        username: dbUser.username,
-        email: dbUser.email,
-      };
-    } catch {
-      return null;
+      const payload = this.jwtService.verify<{ sub: string }>(refreshToken);
+      return this.accountRepository.findById(payload.sub);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
     }
   }
 

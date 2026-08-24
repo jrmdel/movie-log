@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import type { IAuthenticatedRequest } from 'src/common/interfaces/authenticated-request';
+import { type IAuthenticatedRequest } from 'src/common/types/auth.types';
 import { AccountDeletionService } from 'src/modules/account/account-deletion.service';
 import { AccountController } from 'src/modules/account/account.controller';
 import { AccountService } from 'src/modules/account/account.service';
 import { AuthService } from 'src/modules/account/auth.service';
+import { TokenService } from 'src/modules/account/token.service';
 
 describe('AccountController', () => {
   let controller: AccountController;
@@ -22,6 +23,7 @@ describe('AccountController', () => {
         { provide: AccountService, useValue: { createAccount: jest.fn() } },
         { provide: AuthService, useValue: { authenticate: jest.fn(), refreshSession: jest.fn(), logout: jest.fn() } },
         { provide: AccountDeletionService, useValue: { deleteAccount: jest.fn() } },
+        { provide: TokenService, useValue: { resolveAuthenticatedUser: jest.fn() } },
       ],
     }).compile();
 

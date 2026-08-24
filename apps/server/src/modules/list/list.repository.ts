@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { ListDocument } from 'src/modules/list/list.document';
 import { IList, IListDocument, ListType } from 'src/modules/list/list.model';
 
@@ -17,6 +17,9 @@ export class ListRepository {
   }
 
   findById(id: string): Promise<IListDocument | null> {
+    if (!Types.ObjectId.isValid(id)) {
+      return Promise.resolve(null);
+    }
     return this.model.findById(id).lean().exec();
   }
 

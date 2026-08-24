@@ -1,12 +1,11 @@
 import { Logger, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from 'src/app.controller';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 import { RequestMiddleware } from 'src/common/middlewares/request.middleware';
 import { AccountModule } from 'src/modules/account/account.module';
+import { TokenModule } from 'src/modules/account/token.module';
 import { HistoryModule } from 'src/modules/history/history.module';
 import { ListModule } from 'src/modules/list/list.module';
 import { MovieModule } from 'src/modules/movie/movie.module';
@@ -17,13 +16,6 @@ import { MovieModule } from 'src/modules/movie/movie.module';
       isGlobal: true,
       envFilePath: 'config/.env',
     }),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-      }),
-      inject: [ConfigService],
-    }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -32,15 +24,16 @@ import { MovieModule } from 'src/modules/movie/movie.module';
       inject: [ConfigService],
     }),
     AccountModule,
+    TokenModule,
     HistoryModule,
     ListModule,
     MovieModule,
   ],
   controllers: [AppController],
-  providers: [Logger, AuthGuard, AuthMiddleware],
+  providers: [Logger, AuthGuard],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestMiddleware).forRoutes('').apply(AuthMiddleware).forRoutes('');
+    consumer.apply(RequestMiddleware).forRoutes('');
   }
 }

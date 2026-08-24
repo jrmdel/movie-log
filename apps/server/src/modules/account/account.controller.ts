@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, HttpCode, HttpStatus, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import type { IAuthenticatedRequest } from 'src/common/interfaces/authenticated-request';
+import type { IAuthenticatedRequest } from 'src/common/types/auth.types';
 import { AccountDeletionService } from 'src/modules/account/account-deletion.service';
 import { CreateAccountDto, LoginDto, LoginResponseDto } from 'src/modules/account/account.dto';
 import { AccountService } from 'src/modules/account/account.service';
@@ -34,13 +34,13 @@ export class AccountController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Request() req: IAuthenticatedRequest, @Body('refreshToken') refreshToken: string): Promise<void> {
-    await this.authService.logout(req.user!._id, refreshToken);
+    await this.authService.logout(req.user._id, refreshToken);
   }
 
   @Delete('me')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteMe(@Request() req: IAuthenticatedRequest): Promise<void> {
-    await this.accountDeletionService.deleteAccount(req.user!._id);
+    await this.accountDeletionService.deleteAccount(req.user._id);
   }
 }

@@ -1,16 +1,17 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BaseDatabaseService } from 'src/common/base/base-database.service';
 import { ICreateHistory, IHistoryDocument, IUpdateHistory } from 'src/modules/history/history.model';
 import { HistoryRepository } from 'src/modules/history/repositories/history.repository';
 import { MovieService } from 'src/modules/movie/movie.service';
 
-const MONGO_DUPLICATE_KEY_ERROR_CODE = 11000;
-
 @Injectable()
-export class HistoryService {
+export class HistoryService extends BaseDatabaseService {
   constructor(
     private readonly historyRepository: HistoryRepository,
     private readonly movieService: MovieService,
-  ) {}
+  ) {
+    super();
+  }
 
   async getForAccount(accountId: string): Promise<IHistoryDocument[]> {
     return this.historyRepository.findByAccountId(accountId);
@@ -57,15 +58,7 @@ export class HistoryService {
     await this.historyRepository.deleteById(id);
   }
 
-  deleteAllForAccount(accountId: string): Promise<void> {
+  async deleteAllForAccount(accountId: string): Promise<void> {
     return this.historyRepository.deleteAllForAccount(accountId);
-  }
-
-  private isDuplicateKeyError(error: unknown): boolean {
-    return (
-      typeof error === 'object' &&
-      error !== null &&
-      (error as { code?: number }).code === MONGO_DUPLICATE_KEY_ERROR_CODE
-    );
   }
 }

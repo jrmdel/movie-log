@@ -158,7 +158,6 @@ describe('ListService', () => {
         _id: 'movie-1',
         externalId: 'tt123',
         title: 'A Movie',
-        originalTitle: 'A Movie',
         year: 2020,
         rating: 7,
         directors: [],

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { IAccountLogin, ICreateAccount, ILoginResponse } from 'src/modules/account/account.model';
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -9,6 +9,7 @@ export class CreateAccountDto implements ICreateAccount {
   username: string;
 
   @IsString()
+  @IsEmail()
   @IsNotEmpty()
   email: string;
 
