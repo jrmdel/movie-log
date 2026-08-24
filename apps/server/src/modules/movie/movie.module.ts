@@ -11,5 +11,6 @@ import { ImdbProvider } from 'src/modules/movie/providers/imdb.provider';
   imports: [HttpModule, MongooseModule.forFeature([{ name: MovieDocument.name, schema: MovieSchema }])],
   controllers: [MovieController],
   providers: [MovieRepository, MovieService, ImdbProvider],
+  exports: [MovieService],
 })
 export class MovieModule {}

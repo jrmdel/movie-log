@@ -1,19 +1,71 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ICreateHistory, IHistoryDocument, IUpdateHistory } from 'src/modules/history/history.model';
 import { HistoryRepository } from 'src/modules/history/repositories/history.repository';
+import { MovieService } from 'src/modules/movie/movie.service';
+
+const MONGO_DUPLICATE_KEY_ERROR_CODE = 11000;
 
 @Injectable()
 export class HistoryService {
-  constructor(private readonly historyRepository: HistoryRepository) {}
+  constructor(
+    private readonly historyRepository: HistoryRepository,
+    private readonly movieService: MovieService,
+  ) {}
 
-  async getAll() {
-    return this.historyRepository.find();
+  async getForAccount(accountId: string): Promise<IHistoryDocument[]> {
+    return this.historyRepository.findByAccountId(accountId);
   }
 
-  async getById(id: string) {
-    return this.historyRepository.findById(id);
+  // Same 404 whether the entry doesn't exist or belongs to someone else, to avoid leaking its existence.
+  async getOwnedById(id: string, accountId: string): Promise<IHistoryDocument> {
+    const entry = await this.historyRepository.findById(id);
+    if (!entry || entry.accountId !== accountId) {
+      throw new NotFoundException('History entry not found');
+    }
+    return entry;
   }
 
-  async create(data: any) {
-    return this.historyRepository.create(data);
+  async create(accountId: string, dto: ICreateHistory): Promise<IHistoryDocument> {
+    const movie = await this.movieService.resolveMovie(dto.movieId);
+
+    try {
+      return await this.historyRepository.create({
+        accountId,
+        movieId: movie._id,
+        viewedAt: dto.viewedAt ? new Date(dto.viewedAt) : undefined,
+        rating: dto.rating,
+      });
+    } catch (error) {
+      if (this.isDuplicateKeyError(error)) {
+        throw new ConflictException('You already logged this movie');
+      }
+      throw error;
+    }
+  }
+
+  async update(id: string, accountId: string, dto: IUpdateHistory): Promise<IHistoryDocument> {
+    await this.getOwnedById(id, accountId);
+    const updated = await this.historyRepository.updateById(id, {
+      ...(dto.viewedAt !== undefined && { viewedAt: new Date(dto.viewedAt) }),
+      ...(dto.rating !== undefined && { rating: dto.rating }),
+    });
+    return updated!;
+  }
+
+  async remove(id: string, accountId: string): Promise<void> {
+    await this.getOwnedById(id, accountId);
+    await this.historyRepository.deleteById(id);
+  }
+
+  deleteAllForAccount(accountId: string): Promise<void> {
+    return this.historyRepository.deleteAllForAccount(accountId);
+  }
+
+  private isDuplicateKeyError(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      (error as { code?: number }).code === MONGO_DUPLICATE_KEY_ERROR_CODE
+    );
   }
 }

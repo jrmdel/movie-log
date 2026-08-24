@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { createHash } from 'crypto';
 import { IAuthenticatedUser, IUserPayload } from 'src/common/types/auth.types';
 import { IAccountLogin, IBaseAccount, ILoginResponse } from 'src/modules/account/account.model';
 import { AccountService } from 'src/modules/account/account.service';
@@ -25,7 +26,7 @@ export class AuthService {
   }
 
   public async refreshSession(refreshToken: string): Promise<ILoginResponse> {
-    const session = await this.sessionRepository.findByRefreshToken(refreshToken);
+    const session = await this.sessionRepository.findByRefreshTokenHash(this.hashToken(refreshToken));
     if (!session || session.expiresAt < new Date()) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -43,13 +44,17 @@ export class AuthService {
     };
 
     const tokens = this.generateTokens(user);
-    await this.sessionRepository.updateRefreshToken(
-      refreshToken,
-      tokens.refreshToken,
+    await this.sessionRepository.updateRefreshTokenHash(
+      this.hashToken(refreshToken),
+      this.hashToken(tokens.refreshToken),
       new Date(Date.now() + SEVEN_DAYS_IN_MS),
     );
 
     return tokens;
+  }
+
+  public async logout(userId: string, refreshToken: string): Promise<void> {
+    await this.sessionRepository.deleteByRefreshTokenHash(this.hashToken(refreshToken), userId);
   }
 
   public async resolveAuthenticatedUser(token: string): Promise<IAuthenticatedUser | null> {
@@ -85,8 +90,13 @@ export class AuthService {
     const expiresAt = new Date(Date.now() + SEVEN_DAYS_IN_MS);
     await this.sessionRepository.create({
       userId,
-      refreshToken,
+      refreshTokenHash: this.hashToken(refreshToken),
       expiresAt,
     });
+  }
+
+  // Refresh tokens are hashed before persistence so a database leak doesn't expose usable tokens directly.
+  private hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 }

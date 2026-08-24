@@ -7,6 +7,8 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 import { RequestMiddleware } from 'src/common/middlewares/request.middleware';
 import { AccountModule } from 'src/modules/account/account.module';
+import { HistoryModule } from 'src/modules/history/history.module';
+import { ListModule } from 'src/modules/list/list.module';
 import { MovieModule } from 'src/modules/movie/movie.module';
 
 @Module({
@@ -30,6 +32,8 @@ import { MovieModule } from 'src/modules/movie/movie.module';
       inject: [ConfigService],
     }),
     AccountModule,
+    HistoryModule,
+    ListModule,
     MovieModule,
   ],
   controllers: [AppController],

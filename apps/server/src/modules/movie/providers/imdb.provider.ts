@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { BadGatewayException, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { IMovie, IMovieDetails } from 'src/modules/movie/movie.model';
 import { ISearchTitleParams, ISearchTitleResponse, ITitle } from 'src/modules/movie/providers/imdb.model';
@@ -23,7 +24,7 @@ export class ImdbProvider {
 
       return convertToMovies(response.data.titles);
     } catch (error) {
-      throw new Error(`Failed to search movies: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw this.toHttpException(error, 'search movies');
     }
   }
 
@@ -36,7 +37,15 @@ export class ImdbProvider {
 
       return convertToMovieDetails(response.data);
     } catch (error) {
-      throw new Error(`Failed to fetch movie details: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw this.toHttpException(error, 'fetch movie details');
     }
+  }
+
+  private toHttpException(error: unknown, action: string): BadGatewayException | ServiceUnavailableException {
+    // Distinguish "IMDb responded with an error" from "IMDb could not be reached at all".
+    if (error instanceof AxiosError && error.response) {
+      return new BadGatewayException(`Failed to ${action}: the movie provider returned an error`);
+    }
+    return new ServiceUnavailableException(`Failed to ${action}: the movie provider is unavailable`);
   }
 }

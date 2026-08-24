@@ -6,6 +6,11 @@ export interface IMovie {
   rating: number;
 }
 
+export interface ISearchMoviesQuery {
+  query: string;
+  limit?: number;
+}
+
 export interface IMovieDetails extends IMovie {
   directors: string[];
   genres: string[];

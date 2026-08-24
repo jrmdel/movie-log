@@ -12,7 +12,7 @@ export class SessionDocument extends Document<string> implements ISession {
   userId: string;
 
   @Prop({ required: true })
-  refreshToken: string;
+  refreshTokenHash: string;
 
   @Prop({ type: Date })
   createdAt: Date;

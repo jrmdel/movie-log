@@ -1,22 +1,24 @@
-export enum EHistoryStatus {
-  WATCHED = 'WATCHED',
-  ABANDONED = 'ABANDONED',
-  PLANNING = 'PLANNING',
-}
-
-export type HistoryStatus = keyof typeof EHistoryStatus;
-
 export interface IHistory {
   accountId: string;
   movieId: string;
-  watchedDates: Date[];
+  viewedAt?: Date;
   rating?: number;
   notes?: string;
-  status: HistoryStatus;
 }
 
 export interface IHistoryDocument extends IHistory {
   _id: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ICreateHistory {
+  movieId: string;
+  viewedAt?: string;
+  rating?: number;
+}
+
+export interface IUpdateHistory {
+  viewedAt?: string;
+  rating?: number;
 }

@@ -28,4 +28,8 @@ export class AccountRepository {
       .lean()
       .exec();
   }
+
+  public async deleteById(id: string): Promise<void> {
+    await this.model.deleteOne({ _id: id }).exec();
+  }
 }

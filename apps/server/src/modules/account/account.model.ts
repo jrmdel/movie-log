@@ -33,7 +33,7 @@ export interface ILoginResponse {
 
 export interface ICreateSessionDocument {
   userId: string;
-  refreshToken: string;
+  refreshTokenHash: string;
   expiresAt: Date;
 }
 
