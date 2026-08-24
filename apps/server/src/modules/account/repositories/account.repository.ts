@@ -1,9 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import {
-  IAccount,
-  ICreateAccountDocument,
-} from 'src/modules/account/account.model';
+import { Model, Types } from 'mongoose';
+import { IAccount, ICreateAccountDocument } from 'src/modules/account/account.model';
 import { AccountDocument } from 'src/modules/account/schemas/account.document';
 
 export class AccountRepository {
@@ -17,21 +14,25 @@ export class AccountRepository {
     return createdAccount.toObject();
   }
 
-  public async findById(id: string): Promise<IAccount | null> {
+  public findById(id: string): Promise<IAccount | null> {
+    if (!Types.ObjectId.isValid(id)) {
+      return Promise.resolve(null);
+    }
     return this.model.findById(id).lean().exec();
   }
 
-  public async findByEmail(email: string): Promise<IAccount | null> {
+  public findByEmail(email: string): Promise<IAccount | null> {
     return this.model.findOne({ email }).lean().exec();
   }
 
-  public async findBySubOrEmail(
-    sub: string,
-    email: string,
-  ): Promise<IAccount | null> {
+  public findBySubOrEmail(sub: string, email: string): Promise<IAccount | null> {
     return this.model
       .findOne({ $or: [{ _id: sub }, { email }] })
       .lean()
       .exec();
+  }
+
+  public async deleteById(id: string): Promise<void> {
+    await this.model.deleteOne({ _id: id }).exec();
   }
 }

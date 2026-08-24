@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { IAccount } from 'src/modules/account/account.model';
 
 @Schema({ timestamps: true, collection: 'accounts', lean: true })
@@ -17,4 +17,4 @@ export class AccountDocument extends Document<string> implements IAccount {
   lastLoginAt: Date;
 }
 
-export const AccountSchema = SchemaFactory.createForClass(AccountDocument);
+export const AccountSchema: MongooseSchema = SchemaFactory.createForClass(AccountDocument);

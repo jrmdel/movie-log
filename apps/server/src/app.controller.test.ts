@@ -2,9 +2,9 @@ import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from 'src/app.controller';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { AuthService } from 'src/modules/account/auth.service';
+import { TokenService } from 'src/modules/account/token.service';
 
-const authServiceMock = {
+const tokenServiceMock = {
   resolveAuthenticatedUser: (token: string) => {
     if (!token) {
       return null;
@@ -24,7 +24,7 @@ describe('AppController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [{ provide: AuthService, useValue: authServiceMock }],
+      providers: [{ provide: TokenService, useValue: tokenServiceMock }],
     }).compile();
 
     controller = app.get<AppController>(AppController);
@@ -40,7 +40,7 @@ describe('AppController', () => {
 
   describe('secure route', () => {
     it('should reject unauthenticated requests', async () => {
-      const guard = new AuthGuard(authServiceMock as any);
+      const guard = new AuthGuard(tokenServiceMock as any);
       const context = {
         switchToHttp: () => ({
           getRequest: () => ({
@@ -50,13 +50,11 @@ describe('AppController', () => {
         }),
       } as ExecutionContext;
 
-      await expect(guard.canActivate(context)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should accept an authenticated request', async () => {
-      const guard = new AuthGuard(authServiceMock as any);
+      const guard = new AuthGuard(tokenServiceMock as any);
       const context = {
         switchToHttp: () => ({
           getRequest: () => ({

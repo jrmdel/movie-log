@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { ISession } from 'src/modules/account/account.model';
 
 @Schema({
@@ -12,7 +12,7 @@ export class SessionDocument extends Document<string> implements ISession {
   userId: string;
 
   @Prop({ required: true })
-  refreshToken: string;
+  refreshTokenHash: string;
 
   @Prop({ type: Date })
   createdAt: Date;
@@ -21,4 +21,4 @@ export class SessionDocument extends Document<string> implements ISession {
   expiresAt: Date;
 }
 
-export const SessionSchema = SchemaFactory.createForClass(SessionDocument);
+export const SessionSchema: MongooseSchema = SchemaFactory.createForClass(SessionDocument);

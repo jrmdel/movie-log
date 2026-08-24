@@ -1,9 +1,8 @@
 import { Request } from 'express';
+import { IBaseAccount } from 'src/modules/account/account.model';
 
-export interface IAuthenticatedUser {
-  _id: string;
-  username: string;
-  email: string;
+export interface IAuthenticatedRequest extends Request {
+  user: IBaseAccount;
 }
 
 export interface IUserPayload {
@@ -12,8 +11,4 @@ export interface IUserPayload {
   email?: string;
   iat?: number;
   exp?: number;
-}
-
-export interface IRequestWithUser extends Request {
-  user?: IAuthenticatedUser;
 }

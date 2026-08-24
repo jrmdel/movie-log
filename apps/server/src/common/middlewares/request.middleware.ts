@@ -17,9 +17,7 @@ export class RequestMiddleware implements NestMiddleware {
       const { statusCode } = response;
       const duration = Date.now() - start;
 
-      this.logger.log(
-        `[Response] ${method} ${originalUrl} ${statusCode} - ${userAgent} ${ip} +${duration}ms`,
-      );
+      this.logger.log(`[Response] ${method} ${originalUrl} ${statusCode} - ${userAgent} ${ip} +${duration}ms`);
     });
 
     next();

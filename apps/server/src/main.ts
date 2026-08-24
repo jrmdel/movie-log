@@ -1,5 +1,5 @@
-import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from 'src/app.module';
 
 async function bootstrap() {
@@ -24,6 +24,6 @@ async function bootstrap() {
 }
 
 bootstrap().catch((error) => {
-  Logger.error('Error during application bootstrap:', error.stack, 'Bootstrap');
+  Logger.error('Error during application bootstrap:', error, 'Bootstrap');
   process.exit(1);
 });
