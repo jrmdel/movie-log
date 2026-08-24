@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { IMovieDocument } from 'src/modules/movie/movie.model';
 
 @Schema({
@@ -32,4 +32,4 @@ export class MovieDocument extends Document<string> implements IMovieDocument {
   declare createdAt: Date;
 }
 
-export const MovieSchema = SchemaFactory.createForClass(MovieDocument);
+export const MovieSchema: MongooseSchema = SchemaFactory.createForClass(MovieDocument);

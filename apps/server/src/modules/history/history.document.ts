@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { IHistoryDocument } from 'src/modules/history/history.model';
 
 @Schema({ timestamps: true, collection: 'histories', lean: true })
@@ -23,5 +23,5 @@ export class HistoryDocument extends Document<string> implements IHistoryDocumen
   declare updatedAt: Date;
 }
 
-export const HistorySchema = SchemaFactory.createForClass(HistoryDocument);
+export const HistorySchema: MongooseSchema = SchemaFactory.createForClass(HistoryDocument);
 HistorySchema.index({ accountId: 1, movieId: 1, viewedAt: 1 }, { unique: true });
