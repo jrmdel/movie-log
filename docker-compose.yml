@@ -1,0 +1,34 @@
+services:
+  mlog-server:
+    image: dj/movie-log-server:${SERVER_TAG:-latest}
+    container_name: movie-log-server
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.movie-log-server.rule=Host(`${MOVIE_LOG_HOST_PUBLIC_URL}`) && PathPrefix(`/movie-log/api`)"
+      - "traefik.http.routers.movie-log-server.entrypoints=websecure"
+      - "traefik.http.routers.movie-log-server.tls=true"
+      - "traefik.http.routers.movie-log-server.tls.certresolver=le"
+      - "traefik.http.middlewares.strip-movie-log-api.stripPrefix.prefixes=/movie-log"
+      - "traefik.http.routers.movie-log-server.middlewares=strip-movie-log-api"
+      - "traefik.http.routers.movie-log-server.priority=10"
+    networks:
+      - shared-network
+
+  mlog-client:
+    image: dj/movie-log-client:${CLIENT_TAG:-latest} # either the value behind CLIENT_TAG or "latest" if not provided
+    container_name: movie-log-client
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.movie-log-client.rule=Host(`${MOVIE_LOG_HOST_PUBLIC_URL}`) && PathPrefix(`/movie-log`)"
+      - "traefik.http.routers.movie-log-client.entrypoints=websecure"
+      - "traefik.http.routers.movie-log-client.tls=true"
+      - "traefik.http.routers.movie-log-client.tls.certresolver=le"
+      - "traefik.http.middlewares.strip-movie-log-client.stripPrefix.prefixes=/movie-log"
+      - "traefik.http.routers.movie-log-server.middlewares=strip-movie-log-client"
+      - "traefik.http.routers.movie-log-client.priority=5"
+    networks:
+      - shared-network
