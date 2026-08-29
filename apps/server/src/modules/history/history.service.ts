@@ -1,6 +1,12 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { BaseDatabaseService } from 'src/common/base/base-database.service';
-import { ICreateHistory, IHistoryDocument, IUpdateHistory } from 'src/modules/history/history.model';
+import {
+  ICreateHistory,
+  IHistoryDocument,
+  IHistoryQuery,
+  IHistoryWithMovie,
+  IUpdateHistory,
+} from 'src/modules/history/history.model';
 import { HistoryRepository } from 'src/modules/history/repositories/history.repository';
 import { MovieService } from 'src/modules/movie/movie.service';
 
@@ -13,8 +19,12 @@ export class HistoryService extends BaseDatabaseService {
     super();
   }
 
-  async getForAccount(accountId: string): Promise<IHistoryDocument[]> {
-    return this.historyRepository.findByAccountId(accountId);
+  async getForAccount(accountId: string, query: IHistoryQuery): Promise<IHistoryDocument[]> {
+    return this.historyRepository.findByAccountId(accountId, query);
+  }
+
+  async getForAccountWithMovies(accountId: string, query: IHistoryQuery): Promise<IHistoryWithMovie[]> {
+    return this.historyRepository.findByAccountIdWithMovies(accountId, query);
   }
 
   // Same 404 whether the entry doesn't exist or belongs to someone else, to avoid leaking its existence.
@@ -35,6 +45,7 @@ export class HistoryService extends BaseDatabaseService {
         movieId: movie._id,
         viewedAt: dto.viewedAt ? new Date(dto.viewedAt) : undefined,
         rating: dto.rating,
+        notes: dto.notes,
       });
     } catch (error) {
       if (this.isDuplicateKeyError(error)) {
@@ -49,6 +60,7 @@ export class HistoryService extends BaseDatabaseService {
     const updated = await this.historyRepository.updateById(id, {
       ...(dto.viewedAt !== undefined && { viewedAt: new Date(dto.viewedAt) }),
       ...(dto.rating !== undefined && { rating: dto.rating }),
+      ...(dto.notes !== undefined && { notes: dto.notes }),
     });
     return updated!;
   }

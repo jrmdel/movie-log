@@ -31,6 +31,16 @@ export interface ILoginResponse {
   refreshToken: string;
 }
 
+export interface IUpdateAccount {
+  username?: string;
+  email?: string;
+}
+
+export interface IChangePassword {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface ICreateSessionDocument {
   userId: string;
   refreshTokenHash: string;
@@ -41,3 +51,5 @@ export interface ISession extends ICreateSessionDocument {
   _id: string;
   createdAt: Date;
 }
+
+export type UpdatableAccount = Partial<Omit<IAccount, '_id'>>;

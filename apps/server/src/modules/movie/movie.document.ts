@@ -9,25 +9,28 @@ import { IMovieDocument } from 'src/modules/movie/movie.model';
 })
 export class MovieDocument extends Document<string> implements IMovieDocument {
   @Prop({ required: true, type: String, unique: true })
-  externalId: string;
+  externalId!: string;
 
   @Prop({ required: true, type: String })
-  title: string;
+  title!: string;
 
   @Prop({ required: true, type: Number })
-  year: number;
+  year!: number;
 
   @Prop({ required: true, type: [String] })
-  directors: string[];
+  directors!: string[];
 
   @Prop({ required: true, type: [String] })
-  genres: string[];
+  genres!: string[];
 
   @Prop({ required: true, type: [String] })
-  stars: string[];
+  stars!: string[];
 
   @Prop({ required: true, type: Number })
-  rating: number;
+  rating!: number;
+
+  @Prop({ type: String })
+  url?: string;
 
   declare createdAt: Date;
 }

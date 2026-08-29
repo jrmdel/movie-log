@@ -16,7 +16,9 @@ export class MovieService extends BaseDatabaseService {
   }
 
   async searchMovies(query: string, limit?: number): Promise<IMovie[]> {
-    return this.imdbSuggestionProvider.searchMovies(query, limit);
+    const movies = await this.imdbSuggestionProvider.searchMovies(query, limit);
+    // await this.partiallySaveMovies(movies);
+    return movies;
   }
 
   getMovieDetails(id: string): Promise<IMovieDetails> {
@@ -49,5 +51,13 @@ export class MovieService extends BaseDatabaseService {
     }
 
     return this.getOrCreateByExternalId(id);
+  }
+
+  private async partiallySaveMovies(movies: IMovie[]): Promise<void> {
+    const existingExternalIds = await this.movieRepository.findExistingExternalIds(movies.map((m) => m.externalId));
+    const newMovies = movies.filter((m) => !existingExternalIds.includes(m.externalId));
+    if (newMovies.length > 0) {
+      await this.movieRepository.insertMany(newMovies);
+    }
   }
 }

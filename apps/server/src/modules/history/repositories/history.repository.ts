@@ -1,7 +1,7 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { QueryFilter, Model, PipelineStage, Types } from 'mongoose';
 import { HistoryDocument } from 'src/modules/history/history.document';
-import { IHistory, IHistoryDocument } from 'src/modules/history/history.model';
+import { IHistory, IHistoryDocument, IHistoryQuery, IHistoryWithMovie } from 'src/modules/history/history.model';
 
 export class HistoryRepository {
   constructor(
@@ -21,8 +21,33 @@ export class HistoryRepository {
     return this.model.findById(id).lean().exec();
   }
 
-  findByAccountId(accountId: string): Promise<IHistoryDocument[]> {
-    return this.model.find({ accountId }).lean().exec();
+  findByAccountId(accountId: string, query: IHistoryQuery): Promise<IHistoryDocument[]> {
+    return this.model.aggregate<IHistoryDocument>(this.buildAccountPipeline(accountId, query)).exec();
+  }
+
+  // Joins each entry with its movie so clients can render history in a single round trip.
+  findByAccountIdWithMovies(accountId: string, query: IHistoryQuery): Promise<IHistoryWithMovie[]> {
+    const pipeline: PipelineStage[] = [
+      ...this.buildAccountPipeline(accountId, query),
+      {
+        $lookup: {
+          from: 'movies',
+          let: { movieId: '$movieId' },
+          pipeline: [{ $match: { $expr: { $eq: ['$_id', { $toObjectId: '$$movieId' }] } } }],
+          as: 'movie',
+        },
+      },
+      { $unwind: '$movie' },
+    ];
+    return this.model.aggregate<IHistoryWithMovie>(pipeline).exec();
+  }
+
+  private buildAccountPipeline(accountId: string, query: IHistoryQuery): PipelineStage[] {
+    const { movieId, limit, skip, sortOrder } = query;
+    const filter: QueryFilter<IHistoryDocument> = { accountId, ...(movieId && { movieId }) };
+    const order = sortOrder === 'ASC' ? 1 : -1;
+
+    return [{ $match: filter }, { $sort: { viewedAt: order, createdAt: order } }, { $skip: skip }, { $limit: limit }];
   }
 
   findByMovieId(movieId: string): Promise<IHistoryDocument[]> {

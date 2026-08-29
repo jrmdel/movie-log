@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import type { IAuthenticatedRequest } from 'src/common/types/auth.types';
-import { CreateHistoryDto, UpdateHistoryDto } from 'src/modules/history/history.dto';
-import { IHistoryDocument } from 'src/modules/history/history.model';
+import { CreateHistoryDto, GetHistoryQueryDto, UpdateHistoryDto } from 'src/modules/history/history.dto';
+import { IHistoryDocument, IHistoryWithMovie } from 'src/modules/history/history.model';
 import { HistoryService } from 'src/modules/history/history.service';
 
 @Controller({ version: '1', path: 'history' })
@@ -11,8 +11,16 @@ export class HistoryController {
   constructor(private readonly historyService: HistoryService) {}
 
   @Get()
-  getAll(@Request() req: IAuthenticatedRequest): Promise<IHistoryDocument[]> {
-    return this.historyService.getForAccount(req.user._id);
+  getAll(@Request() req: IAuthenticatedRequest, @Query() query: GetHistoryQueryDto): Promise<IHistoryDocument[]> {
+    return this.historyService.getForAccount(req.user._id, query);
+  }
+
+  @Get('movies')
+  getAllWithMovies(
+    @Request() req: IAuthenticatedRequest,
+    @Query() query: GetHistoryQueryDto,
+  ): Promise<IHistoryWithMovie[]> {
+    return this.historyService.getForAccountWithMovies(req.user._id, query);
   }
 
   @Get(':id')

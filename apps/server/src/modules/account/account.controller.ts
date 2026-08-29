@@ -1,8 +1,15 @@
-import { Body, Controller, Delete, HttpCode, HttpStatus, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import type { IAuthenticatedRequest } from 'src/common/types/auth.types';
 import { AccountDeletionService } from 'src/modules/account/account-deletion.service';
-import { CreateAccountDto, LoginDto, LoginResponseDto } from 'src/modules/account/account.dto';
+import {
+  ChangePasswordDto,
+  CreateAccountDto,
+  LoginDto,
+  LoginResponseDto,
+  UpdateAccountDto,
+} from 'src/modules/account/account.dto';
+import { IBaseAccount } from 'src/modules/account/account.model';
 import { AccountService } from 'src/modules/account/account.service';
 import { AuthService } from 'src/modules/account/auth.service';
 
@@ -42,5 +49,23 @@ export class AccountController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteMe(@Request() req: IAuthenticatedRequest): Promise<void> {
     await this.accountDeletionService.deleteAccount(req.user._id);
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard)
+  getMe(@Request() req: IAuthenticatedRequest): Promise<IBaseAccount> {
+    return this.accountService.getById(req.user._id);
+  }
+
+  @Patch('me')
+  @UseGuards(AuthGuard)
+  updateMe(@Request() req: IAuthenticatedRequest, @Body() dto: UpdateAccountDto): Promise<IBaseAccount> {
+    return this.accountService.updateAccount(req.user._id, dto);
+  }
+
+  @Patch('me/password')
+  @UseGuards(AuthGuard)
+  changePassword(@Request() req: IAuthenticatedRequest, @Body() dto: ChangePasswordDto): Promise<void> {
+    return this.accountService.changePassword(req.user._id, dto);
   }
 }

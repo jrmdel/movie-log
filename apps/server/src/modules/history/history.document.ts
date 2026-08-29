@@ -5,10 +5,10 @@ import { IHistoryDocument } from 'src/modules/history/history.model';
 @Schema({ timestamps: true, collection: 'histories', lean: true })
 export class HistoryDocument extends Document<string> implements IHistoryDocument {
   @Prop({ required: true, type: String, ref: 'AccountDocument' })
-  accountId: string;
+  accountId!: string;
 
   @Prop({ required: true, type: String, ref: 'MovieDocument' })
-  movieId: string;
+  movieId!: string;
 
   @Prop({ type: Date })
   viewedAt?: Date;

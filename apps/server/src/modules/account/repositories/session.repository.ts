@@ -27,7 +27,7 @@ export class SessionRepository {
       .findOneAndUpdate(
         { refreshTokenHash: currentRefreshTokenHash },
         { refreshTokenHash: nextRefreshTokenHash, expiresAt },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .lean()
       .exec();

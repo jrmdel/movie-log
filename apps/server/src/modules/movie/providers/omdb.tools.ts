@@ -12,6 +12,7 @@ export function convertToMovieDetails(result: IOmdbMovieDetails): IMovieDetails 
     genres: parseList(result.Genre),
     stars: parseList(result.Actors),
     rating: parseRating(result.imdbRating),
+    url: result.Poster,
   };
 }
 
