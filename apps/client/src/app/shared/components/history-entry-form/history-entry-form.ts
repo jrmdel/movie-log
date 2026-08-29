@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, input, model, output } from '@angular/core';
-
 import { RatingStars } from '@src/app/shared/components/rating-stars/rating-stars';
 
 let nextFormId = 0;
@@ -46,7 +45,7 @@ let nextFormId = 0;
       </div>
 
       <div [class]="compact() ? 'flex gap-2' : 'mt-4 flex'">
-        <button type="button" [disabled]="saving()" (click)="save.emit()" [class]="buttonClass()">
+        <button type="button" [disabled]="saving()" (click)="saveForm()" [class]="buttonClass()">
           {{ saving() ? 'Saving…' : saveLabel() }}
         </button>
         @if (showCancel()) {
@@ -83,4 +82,20 @@ export class HistoryEntryForm {
       ? 'rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700'
       : 'w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50',
   );
+
+  protected saveForm(): void {
+    this.save.emit();
+    this.resetForm();
+  }
+
+  private resetForm(): void {
+    this.rating.set(0);
+    this.notes.set('');
+    this.viewedAt.set(this.getTodayDateString());
+  }
+
+  private getTodayDateString(): string {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  }
 }
