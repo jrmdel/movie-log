@@ -1,0 +1,88 @@
+name: Deploy movie-log website
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "26"
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Get server version
+        id: server-version
+        run: |
+          VERSION=$(grep -Po '"version":\s*"\K[^"]+' ./apps/server/package.json)
+          echo "SERVER_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get client version
+        id: client-version
+        run: |
+          VERSION=$(grep -Po '"version":\s*"\K[^"]+' ./apps/client/package.json)
+          echo "CLIENT_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Deploy to VPS
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          HOST_PUBLIC_URL: ${{ vars.HOST_PUBLIC_URL }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          # Copy backend files
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/server/Dockerfile $VPS_USER@$VPS_HOST:~/movie-log/apps/server/
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/server/package*.json $VPS_USER@$VPS_HOST:~/movie-log/apps/server/
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/server/(package|tsconfig|nest)*json $VPS_USER@$VPS_HOST:~/movie-log/apps/server/
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r ./apps/server/src $VPS_USER@$VPS_HOST:~/movie-log/apps/server/
+
+          # Copy frontend files
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/client/Dockerfile $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/client/(package|tsconfig|angular)*json $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r ./apps/client/public $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r ./apps/client/src $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
+
+          # Copy the rest
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./docker-compose.yml $VPS_USER@$VPS_HOST:~/movie-log/
+
+          # Connect and deploy
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST << 'EOF'
+            cd ~/movie-log
+
+            export SERVER_VERSION=${{ steps.server-version.outputs.SERVER_VERSION }}
+            export CLIENT_VERSION=${{ steps.client-version.outputs.CLIENT_VERSION }}
+            export MOVIE_LOG_HOST_PUBLIC_URL=$HOST_PUBLIC_URL
+
+            if [ -z "$SERVER_VERSION" ]; then SERVER_VERSION=latest; fi
+            if [ -z "$CLIENT_VERSION" ]; then CLIENT_VERSION=latest; fi
+            if [ -z "$MOVIE_LOG_HOST_PUBLIC_URL" ]; then
+              echo "Error: MOVIE_LOG_HOST_PUBLIC_URL is not set!"
+              exit 1
+            fi
+
+            docker build -t dj/movie-log-server:$SERVER_VERSION ./apps/server
+            docker build -t dj/movie-log-client:$CLIENT_VERSION ./apps/client
+
+            docker tag dj/movie-log-server:$SERVER_VERSION dj/movie-log-server:latest
+            docker tag dj/movie-log-client:$CLIENT_VERSION dj/movie-log-client:latest
+
+            docker compose pull
+            docker compose up -d --build
+
+          EOF
+
+          rm -f private_key.pem
