@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { HistoryApiService } from '@src/app/core/api/history-api.service';
 import { AuthService } from '@src/app/core/auth/auth.service';
 import { NotificationService } from '@src/app/core/services/notification.service';
 import { MovieCard } from '@src/app/shared/components/movie-card/movie-card';
 import { MovieCardSkeletonComponent } from '@src/app/shared/components/movie-card/movie-card-skeleton';
 import { debouncedSignal, minDurationSignal } from '@src/app/shared/tools/signals/signals.tools';
+import { EMPTY } from 'rxjs';
+import { catchError, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
@@ -58,11 +57,11 @@ export class Home {
     this.historyApi
       .fetchRecentlyWatched()
       .pipe(
+        take(1),
         catchError(() => {
           this.notificationService.error('Failed to load recently watched movies.');
           return EMPTY;
         }),
-        takeUntilDestroyed(),
       )
       .subscribe();
   }

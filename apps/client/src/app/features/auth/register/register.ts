@@ -2,8 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { switchMap } from 'rxjs/operators';
 import { AuthService } from '@src/app/core/auth/auth.service';
+import { switchMap, take } from 'rxjs/operators';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -103,7 +103,10 @@ export class Register {
 
     this.authService
       .register({ username, email, password })
-      .pipe(switchMap(() => this.authService.login({ email, password })))
+      .pipe(
+        take(1),
+        switchMap(() => this.authService.login({ email, password })),
+      )
       .subscribe({
         next: () => void this.router.navigateByUrl('/'),
         error: (error: unknown) => {

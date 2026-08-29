@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, take, tap } from 'rxjs/operators';
 
 import {
   ESortOrder,
@@ -11,8 +11,8 @@ import {
   IHistoryWithMovie,
   IUpdateHistory,
 } from '@src/app/core/models/history.model';
-import { environment } from '@src/environments/environment';
 import { IMovieDocument } from '@src/app/core/models/movie.model';
+import { environment } from '@src/environments/environment';
 
 const HISTORY_BASE_URL = `${environment.apiUrl}/history`;
 const RECENTLY_WATCHED_LIMIT = 5;
@@ -34,6 +34,7 @@ export class HistoryApiService {
       limit: RECENTLY_WATCHED_LIMIT,
       sortOrder: ESortOrder.DESC,
     }).pipe(
+      take(1),
       map((entries) => entries.map((entry) => entry.movie)),
       tap((movies) => {
         this.recentlyWatched.set(movies);

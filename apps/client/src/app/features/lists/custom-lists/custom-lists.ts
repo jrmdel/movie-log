@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { of } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
+import { catchError, finalize, map, take } from 'rxjs/operators';
 
 import { ListApiService } from '@src/app/core/api/list-api.service';
 import { EListType, IListDocument } from '@src/app/core/models/list.model';
@@ -97,6 +97,7 @@ export class CustomLists {
     this.listApi
       .getAll()
       .pipe(
+        take(1),
         map((lists) => lists.filter((list) => list.type === EListType.CUSTOM)),
         catchError(() => {
           this.notificationService.error('Failed to load your lists.');

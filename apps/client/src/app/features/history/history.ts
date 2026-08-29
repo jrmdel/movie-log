@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
+import { catchError, finalize, take } from 'rxjs/operators';
 
 import { HistoryApiService } from '@src/app/core/api/history-api.service';
 import { ESortOrder, IHistoryWithMovie, IUpdateHistory } from '@src/app/core/models/history.model';
 import { NotificationService } from '@src/app/core/services/notification.service';
-import { ConfirmDialog } from '@src/app/shared/components/confirm-dialog/confirm-dialog';
 import { HistoryEntryRow } from '@src/app/features/history/history-entry-row/history-entry-row';
+import { ConfirmDialog } from '@src/app/shared/components/confirm-dialog/confirm-dialog';
 
 const HISTORY_PAGE_SIZE = 100;
 
@@ -71,12 +70,12 @@ export class History {
     this.historyApi
       .getAllWithMovies({ limit: HISTORY_PAGE_SIZE, sortOrder: ESortOrder.DESC })
       .pipe(
+        take(1),
         catchError(() => {
           this.notificationService.error('Failed to load your watch history.');
           return of<IHistoryWithMovie[]>([]);
         }),
         finalize(() => this.loading.set(false)),
-        takeUntilDestroyed(),
       )
       .subscribe((rows) => this.rows.set(rows));
   }

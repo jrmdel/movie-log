@@ -1,17 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { of } from 'rxjs';
-import { catchError, filter, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { ListApiService } from '@src/app/core/api/list-api.service';
 import { MovieApiService } from '@src/app/core/api/movie-api.service';
 import { EListType, IListDocument } from '@src/app/core/models/list.model';
 import { IMovieDocument } from '@src/app/core/models/movie.model';
 import { NotificationService } from '@src/app/core/services/notification.service';
-import { ConfirmDialog } from '@src/app/shared/components/confirm-dialog/confirm-dialog';
 import { MovieListItem } from '@src/app/features/lists/components/movie-list-item/movie-list-item';
+import { ConfirmDialog } from '@src/app/shared/components/confirm-dialog/confirm-dialog';
 import { minDurationSignal } from '@src/app/shared/tools/signals/signals.tools';
+import { of } from 'rxjs';
+import { catchError, filter, finalize, map, switchMap, take, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-list-detail',
@@ -112,7 +111,7 @@ export class ListDetail {
         map((params) => params.get('id')),
         filter((id): id is string => !!id),
         switchMap((id) => this.loadList(id)),
-        takeUntilDestroyed(),
+        take(1),
       )
       .subscribe();
   }
@@ -182,6 +181,7 @@ export class ListDetail {
         return of(undefined);
       }),
       finalize(() => this.loading.set(false)),
+      take(1),
     );
   }
 }

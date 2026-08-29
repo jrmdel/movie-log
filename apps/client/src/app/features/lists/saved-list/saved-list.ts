@@ -1,14 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
-import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { ListApiService } from '@src/app/core/api/list-api.service';
 import { MovieApiService } from '@src/app/core/api/movie-api.service';
 import { EListType, IListDocument } from '@src/app/core/models/list.model';
 import { IMovieDocument } from '@src/app/core/models/movie.model';
 import { NotificationService } from '@src/app/core/services/notification.service';
 import { MovieListItem } from '@src/app/features/lists/components/movie-list-item/movie-list-item';
+import { Observable, of } from 'rxjs';
+import { catchError, finalize, switchMap, take } from 'rxjs/operators';
 
 type SavedListType = typeof EListType.WATCHLIST | typeof EListType.FAVORITES;
 
@@ -80,7 +79,7 @@ export class SavedList {
           return of<IMovieDocument[]>([]);
         }),
         finalize(() => this.loading.set(false)),
-        takeUntilDestroyed(),
+        take(1),
       )
       .subscribe((movies) => this.movies.set(movies));
   }

@@ -2,13 +2,13 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { AccountApiService } from '@src/app/core/api/account-api.service';
 import { HistoryApiService } from '@src/app/core/api/history-api.service';
 import {
+  IAccountLogin,
   IBaseAccount,
   ICreateAccount,
-  IAccountLogin,
   ILoginResponse,
 } from '@src/app/core/models/account.model';
 import { Observable, of, throwError } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, take, tap } from 'rxjs/operators';
 
 const ACCESS_TOKEN_KEY = 'movie-log.accessToken';
 const REFRESH_TOKEN_KEY = 'movie-log.refreshToken';
@@ -36,6 +36,7 @@ export class AuthService {
 
   login(dto: IAccountLogin): Observable<void> {
     return this.accountApi.login(dto).pipe(
+      take(1),
       tap((tokens) => this.setTokens(tokens)),
       switchMap(() => this.accountApi.getMe()),
       tap((user) => this.currentUserSignal.set(user)),
@@ -48,7 +49,10 @@ export class AuthService {
     if (!refreshToken) {
       return throwError(() => new Error('No refresh token available'));
     }
-    return this.accountApi.refresh(refreshToken).pipe(tap((tokens) => this.setTokens(tokens)));
+    return this.accountApi.refresh(refreshToken).pipe(
+      take(1),
+      tap((tokens) => this.setTokens(tokens)),
+    );
   }
 
   // Runs at bootstrap to restore a session from a stored refresh token, if any.
@@ -57,7 +61,9 @@ export class AuthService {
       return of(undefined);
     }
     return this.refresh().pipe(
+      take(1),
       switchMap(() => this.accountApi.getMe()),
+      take(1),
       tap((user) => this.currentUserSignal.set(user)),
       map(() => undefined),
       catchError(() => {
@@ -71,6 +77,7 @@ export class AuthService {
     const refreshToken = this.getRefreshToken();
     const request$ = refreshToken ? this.accountApi.logout(refreshToken) : of(undefined);
     return request$.pipe(
+      take(1),
       catchError(() => of(undefined)),
       tap(() => this.clearSession()),
     );

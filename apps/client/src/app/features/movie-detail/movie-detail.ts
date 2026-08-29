@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
-import { catchError, filter, finalize, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, filter, finalize, map, switchMap, take, tap } from 'rxjs/operators';
 
 import { HistoryApiService } from '@src/app/core/api/history-api.service';
 import { ListApiService } from '@src/app/core/api/list-api.service';
@@ -254,6 +254,7 @@ export class MovieDetail {
         return of(undefined);
       }),
       finalize(() => this.loading.set(false)),
+      take(1),
     );
   }
 }
