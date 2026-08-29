@@ -39,7 +39,6 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
-          HOST_PUBLIC_URL: ${{ vars.HOST_PUBLIC_URL }}
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
@@ -67,8 +66,10 @@ jobs:
             cd ~/movie-log
 
             export SERVER_VERSION=${{ steps.server-version.outputs.SERVER_VERSION }}
+            echo "Server version: $SERVER_VERSION"
             export CLIENT_VERSION=${{ steps.client-version.outputs.CLIENT_VERSION }}
-            export MOVIE_LOG_HOST_PUBLIC_URL=$HOST_PUBLIC_URL
+            echo "Client version: $CLIENT_VERSION"
+            export MOVIE_LOG_HOST_PUBLIC_URL=${{ vars.HOST_PUBLIC_URL }}
 
             if [ -z "$SERVER_VERSION" ]; then SERVER_VERSION=latest; fi
             if [ -z "$CLIENT_VERSION" ]; then CLIENT_VERSION=latest; fi
