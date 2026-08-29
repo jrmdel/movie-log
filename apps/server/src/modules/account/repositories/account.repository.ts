@@ -1,6 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { IAccount, ICreateAccountDocument } from 'src/modules/account/account.model';
+import { IAccount, ICreateAccountDocument, UpdatableAccount } from 'src/modules/account/account.model';
 import { AccountDocument } from 'src/modules/account/schemas/account.document';
 
 export class AccountRepository {
@@ -30,6 +30,10 @@ export class AccountRepository {
       .findOne({ $or: [{ _id: sub }, { email }] })
       .lean()
       .exec();
+  }
+
+  public updateById(id: string, data: UpdatableAccount): Promise<IAccount | null> {
+    return this.model.findByIdAndUpdate(id, data, { new: true }).lean().exec();
   }
 
   public async deleteById(id: string): Promise<void> {

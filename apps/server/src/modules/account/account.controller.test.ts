@@ -20,7 +20,15 @@ describe('AccountController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AccountController],
       providers: [
-        { provide: AccountService, useValue: { createAccount: jest.fn() } },
+        {
+          provide: AccountService,
+          useValue: {
+            createAccount: jest.fn(),
+            getById: jest.fn(),
+            updateAccount: jest.fn(),
+            changePassword: jest.fn(),
+          },
+        },
         { provide: AuthService, useValue: { authenticate: jest.fn(), refreshSession: jest.fn(), logout: jest.fn() } },
         { provide: AccountDeletionService, useValue: { deleteAccount: jest.fn() } },
         { provide: TokenService, useValue: { resolveAuthenticatedUser: jest.fn() } },
@@ -70,5 +78,36 @@ describe('AccountController', () => {
     await controller.deleteMe(authenticatedRequest);
 
     expect(accountDeletionService.deleteAccount).toHaveBeenCalledWith('account-1');
+  });
+
+  it('delegates fetching the authenticated account to AccountService', async () => {
+    accountService.getById.mockResolvedValue({ _id: 'account-1', username: 'jdoe', email: 'jdoe@example.com' });
+
+    const result = await controller.getMe(authenticatedRequest);
+
+    expect(accountService.getById).toHaveBeenCalledWith('account-1');
+    expect(result).toEqual({ _id: 'account-1', username: 'jdoe', email: 'jdoe@example.com' });
+  });
+
+  it('delegates updating the authenticated account to AccountService', async () => {
+    const dto = { username: 'new-name' };
+    accountService.updateAccount.mockResolvedValue({
+      _id: 'account-1',
+      username: 'new-name',
+      email: 'jdoe@example.com',
+    });
+
+    const result = await controller.updateMe(authenticatedRequest, dto);
+
+    expect(accountService.updateAccount).toHaveBeenCalledWith('account-1', dto);
+    expect(result).toEqual({ _id: 'account-1', username: 'new-name', email: 'jdoe@example.com' });
+  });
+
+  it('delegates changing the password to AccountService', async () => {
+    const dto = { currentPassword: 'old-password', newPassword: 'new-password' };
+
+    await controller.changePassword(authenticatedRequest, dto);
+
+    expect(accountService.changePassword).toHaveBeenCalledWith('account-1', dto);
   });
 });

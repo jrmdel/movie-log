@@ -28,6 +28,7 @@ describe('HistoryService', () => {
           provide: HistoryRepository,
           useValue: {
             findByAccountId: jest.fn(),
+            findByAccountIdWithMovies: jest.fn(),
             findById: jest.fn(),
             create: jest.fn(),
             updateById: jest.fn(),
@@ -42,6 +43,39 @@ describe('HistoryService', () => {
     service = module.get(HistoryService);
     historyRepository = module.get(HistoryRepository);
     movieService = module.get(MovieService);
+  });
+
+  describe('getForAccountWithMovies', () => {
+    it('delegates to the repository', async () => {
+      const entryWithMovie = {
+        ...historyEntry,
+        movie: {
+          _id: 'movie-1',
+          externalId: 'tt123',
+          title: 'A Movie',
+          year: 2020,
+          rating: 7,
+          directors: [],
+          genres: [],
+          stars: [],
+          createdAt: new Date(),
+        },
+      };
+      historyRepository.findByAccountIdWithMovies.mockResolvedValue([entryWithMovie]);
+
+      const result = await service.getForAccountWithMovies('account-1', {
+        limit: 20,
+        skip: 0,
+        sortOrder: 'DESC',
+      });
+
+      expect(historyRepository.findByAccountIdWithMovies).toHaveBeenCalledWith('account-1', {
+        limit: 20,
+        skip: 0,
+        sortOrder: 'DESC',
+      });
+      expect(result).toEqual([entryWithMovie]);
+    });
   });
 
   describe('getOwnedById', () => {

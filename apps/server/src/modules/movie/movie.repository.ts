@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { IMovieDetails, IMovieDocument } from 'src/modules/movie/movie.model';
+import { IMovie, IMovieDetails, IMovieDocument } from 'src/modules/movie/movie.model';
 import { MovieDocument } from 'src/modules/movie/movie.document';
 
 @Injectable()
@@ -25,5 +25,17 @@ export class MovieRepository {
 
   findByExternalId(externalId: string): Promise<IMovieDocument | null> {
     return this.model.findOne({ externalId }).lean().exec();
+  }
+
+  findExistingExternalIds(externalIds: string[]): Promise<string[]> {
+    return this.model
+      .find({ externalId: { $in: externalIds }, url: { $exists: true } })
+      .distinct('externalId')
+      .lean()
+      .exec();
+  }
+
+  insertMany(movies: IMovie[]): Promise<IMovieDocument[]> {
+    return this.model.insertMany(movies).then((docs) => docs.map((doc) => doc.toObject()));
   }
 }
