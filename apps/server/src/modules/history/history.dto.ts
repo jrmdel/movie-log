@@ -8,7 +8,7 @@ const MAX_RATING = 5;
 export class CreateHistoryDto implements ICreateHistory {
   @IsString()
   @IsNotEmpty()
-  movieId!: string;
+  movieId: string;
 
   @IsOptional()
   @IsDateString()

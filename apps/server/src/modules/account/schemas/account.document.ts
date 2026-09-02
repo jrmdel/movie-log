@@ -4,6 +4,8 @@ import { IAccount } from 'src/modules/account/account.model';
 
 @Schema({ timestamps: true, collection: 'accounts', lean: true })
 export class AccountDocument extends Document<string> implements IAccount {
+  declare _id: string;
+
   @Prop({ required: true, unique: true })
   username: string;
 

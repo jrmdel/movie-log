@@ -59,7 +59,7 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify<{ sub: string }>(refreshToken);
       return this.accountRepository.findById(payload.sub);
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
