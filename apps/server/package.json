@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
+    "@nestjs/cli": "^11.0.24",
     "@nestjs/common": "^11.2.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.2.1",
@@ -36,7 +37,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
     "@eslint/js": "^9.18.0",
-    "@nestjs/cli": "^11.0.24",
+    "@golevelup/ts-jest": "^3.0.0",
     "@nestjs/schematics": "^11.1.0",
     "@nestjs/testing": "^11.2.1",
     "@types/bcrypt": "^6.0.0",
@@ -67,7 +68,8 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "moduleNameMapper": {
-      "^src/(.*)$": "<rootDir>/$1"
+      "^src/(.*)$": "<rootDir>/$1",
+      "^test/(.*)$": "<rootDir>/../test/$1"
     },
     "collectCoverageFrom": [
       "**/*.ts"

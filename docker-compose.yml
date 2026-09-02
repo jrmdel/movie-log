@@ -1,8 +1,13 @@
 services:
   mlog-server:
     image: dj/movie-log-server:${SERVER_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
     container_name: movie-log-server
     restart: unless-stopped
+    env_file:
+      - apps/server/config/.env
     environment:
       - NODE_ENV=production
     labels:
@@ -15,10 +20,13 @@ services:
       - "traefik.http.routers.movie-log-server.middlewares=strip-movie-log-api"
       - "traefik.http.routers.movie-log-server.priority=10"
     networks:
-      - shared-network
+      - shared_network
 
   mlog-client:
     image: dj/movie-log-client:${CLIENT_TAG:-latest} # either the value behind CLIENT_TAG or "latest" if not provided
+    build:
+      context: .
+      dockerfile: apps/client/Dockerfile
     container_name: movie-log-client
     restart: unless-stopped
     labels:
@@ -28,7 +36,11 @@ services:
       - "traefik.http.routers.movie-log-client.tls=true"
       - "traefik.http.routers.movie-log-client.tls.certresolver=le"
       - "traefik.http.middlewares.strip-movie-log-client.stripPrefix.prefixes=/movie-log"
-      - "traefik.http.routers.movie-log-server.middlewares=strip-movie-log-client"
+      - "traefik.http.routers.movie-log-client.middlewares=strip-movie-log-client"
       - "traefik.http.routers.movie-log-client.priority=5"
     networks:
-      - shared-network
+      - shared_network
+
+networks:
+  shared_network:
+    external: true

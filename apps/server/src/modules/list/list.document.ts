@@ -5,6 +5,8 @@ import { EListType, IListDocument, type ListType } from 'src/modules/list/list.m
 @Schema({ timestamps: true, collection: 'lists', lean: true })
 export class ListDocument extends Document<string> implements IListDocument {
   @Prop({ required: true, type: String, ref: 'AccountDocument' })
+  declare _id: string;
+
   accountId: string;
 
   @Prop({ required: true, type: String })

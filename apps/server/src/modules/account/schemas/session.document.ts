@@ -8,6 +8,8 @@ import { ISession } from 'src/modules/account/account.model';
   lean: true,
 })
 export class SessionDocument extends Document<string> implements ISession {
+  declare _id: string;
+
   @Prop({ required: true })
   userId: string;
 

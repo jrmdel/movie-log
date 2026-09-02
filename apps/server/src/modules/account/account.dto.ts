@@ -12,36 +12,36 @@ const MIN_PASSWORD_LENGTH = 8;
 export class CreateAccountDto implements ICreateAccount {
   @IsString()
   @IsNotEmpty()
-  username!: string;
+  username: string;
 
   @IsString()
   @IsEmail()
   @IsNotEmpty()
-  email!: string;
+  email: string;
 
   @IsString()
   @MinLength(MIN_PASSWORD_LENGTH)
-  password!: string;
+  password: string;
 }
 
 export class LoginDto implements IAccountLogin {
   @IsString()
   @IsNotEmpty()
-  email!: string;
+  email: string;
 
   @IsString()
   @IsNotEmpty()
-  password!: string;
+  password: string;
 }
 
 export class LoginResponseDto implements ILoginResponse {
   @IsString()
   @IsNotEmpty()
-  accessToken!: string;
+  accessToken: string;
 
   @IsString()
   @IsNotEmpty()
-  refreshToken!: string;
+  refreshToken: string;
 }
 
 export class UpdateAccountDto implements IUpdateAccount {
@@ -59,9 +59,9 @@ export class UpdateAccountDto implements IUpdateAccount {
 export class ChangePasswordDto implements IChangePassword {
   @IsString()
   @IsNotEmpty()
-  currentPassword!: string;
+  currentPassword: string;
 
   @IsString()
   @MinLength(MIN_PASSWORD_LENGTH)
-  newPassword!: string;
+  newPassword: string;
 }
