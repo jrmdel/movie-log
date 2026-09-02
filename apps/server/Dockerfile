@@ -1,18 +1,19 @@
 FROM node:26-alpine AS builder
 WORKDIR /app
-COPY ../../package*.json ./
-COPY package.json ./package.json
-RUN npm ci --workspace=server
+COPY package*.json ./
+COPY apps/server/package*.json ./apps/server/
+RUN npm ci
 COPY . .
-RUN npm run build
-RUN npm prune --production
+RUN npm run build --workspace=apps/server
 
-FROM node:26-alpine
+FROM node:26-alpine AS runner
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
-COPY --from=builder /app/dist ./dist
-COPY config/.env .env
+COPY apps/server/package*.json ./apps/server/
+RUN npm ci --omit=dev --workspace=apps/server
+COPY --from=builder /app/apps/server/dist ./apps/server/dist
 EXPOSE 3000
 ENV NODE_ENV=production
+
+WORKDIR /app/apps/server
 CMD ["node", "dist/main.js"]
