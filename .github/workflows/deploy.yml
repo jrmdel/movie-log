@@ -45,16 +45,13 @@ jobs:
 
           # Copy backend files
           scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/server/Dockerfile $VPS_USER@$VPS_HOST:~/movie-log/apps/server/
-          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/server/package.json $VPS_USER@$VPS_HOST:~/movie-log/apps/server/
-          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/server/tsconfig*json $VPS_USER@$VPS_HOST:~/movie-log/apps/server/
-          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/server/nest*json $VPS_USER@$VPS_HOST:~/movie-log/apps/server/
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/server/{tsconfig,nest,package}*json $VPS_USER@$VPS_HOST:~/movie-log/apps/server/
           scp -i private_key.pem -o StrictHostKeyChecking=no -r ./apps/server/src $VPS_USER@$VPS_HOST:~/movie-log/apps/server/
 
           # Copy frontend files
           scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/client/Dockerfile $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
-          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/client/package.json $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
-          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/client/tsconfig*json $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
-          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/client/angular*json $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/client/{tsconfig,angular,.postcssrc,package}*json $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./apps/client/nginx.conf $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
           scp -i private_key.pem -o StrictHostKeyChecking=no -r ./apps/client/public $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
           scp -i private_key.pem -o StrictHostKeyChecking=no -r ./apps/client/src $VPS_USER@$VPS_HOST:~/movie-log/apps/client/
 
