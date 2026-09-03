@@ -41,6 +41,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "outputPath": "dist",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -53,6 +54,15 @@
           },
           "configurations": {
             "production": {
+              "sourceMap": true,
+              "baseHref": "/movie-log/",
+              "optimization":  {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                }
+              },
               "budgets": [
                 {
                   "type": "initial",
