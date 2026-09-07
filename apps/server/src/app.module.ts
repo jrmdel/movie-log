@@ -6,6 +6,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { RequestMiddleware } from 'src/common/middlewares/request.middleware';
 import { AccountModule } from 'src/modules/account/account.module';
 import { TokenModule } from 'src/modules/account/token.module';
+import { BulkImportModule } from 'src/modules/bulk-import/bulk-import.module';
 import { HistoryModule } from 'src/modules/history/history.module';
 import { ListModule } from 'src/modules/list/list.module';
 import { MovieModule } from 'src/modules/movie/movie.module';
@@ -25,6 +26,7 @@ import { MovieModule } from 'src/modules/movie/movie.module';
     }),
     AccountModule,
     TokenModule,
+    BulkImportModule,
     HistoryModule,
     ListModule,
     MovieModule,
