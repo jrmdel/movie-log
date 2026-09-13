@@ -6,28 +6,61 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { catchError, finalize, take } from 'rxjs/operators';
 
 import { BulkImportApiService } from '@src/app/core/api/bulk-import-api.service';
 import { HistoryApiService } from '@src/app/core/api/history-api.service';
 import { EBulkImportJobStatus, IBulkImportJob } from '@src/app/core/models/bulk-import.model';
-import { ESortOrder, IHistoryWithMovie, IUpdateHistory } from '@src/app/core/models/history.model';
+import { IPaginatedResult } from '@src/app/core/models/common.model';
+import {
+  EHistorySortBy,
+  ESortOrder,
+  HistorySortBy,
+  IHistoryQuery,
+  IHistoryWithMovie,
+  IUpdateHistory,
+  SortOrder,
+} from '@src/app/core/models/history.model';
 import { NotificationService } from '@src/app/core/services/notification.service';
 import { BulkImportDialog } from '@src/app/features/history/bulk-import/bulk-import-dialog';
 import { BulkImportReviewDialog } from '@src/app/features/history/bulk-import/bulk-import-review-dialog';
 import { HistoryEntryRow } from '@src/app/features/history/history-entry-row/history-entry-row';
 import { ConfirmDialog } from '@src/app/shared/components/confirm-dialog/confirm-dialog';
+import { Paginator } from '@src/app/shared/components/paginator/paginator';
+import { debouncedSignal } from '@src/app/shared/tools/signals/signals.tools';
 
-const HISTORY_PAGE_SIZE = 100;
+const HISTORY_PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 400;
+const DEFAULT_SORT_BY: HistorySortBy = EHistorySortBy.VIEWED_AT;
+const DEFAULT_SORT_ORDER: SortOrder = ESortOrder.DESC;
+
+function parsePage(value: string | null): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+}
+
+function parseSortBy(value: string | null): HistorySortBy {
+  return value && value in EHistorySortBy ? (value as HistorySortBy) : DEFAULT_SORT_BY;
+}
+
+function parseSortOrder(value: string | null): SortOrder {
+  return value && value in ESortOrder ? (value as SortOrder) : DEFAULT_SORT_ORDER;
+}
 
 @Component({
   selector: 'app-history',
-  imports: [ConfirmDialog, HistoryEntryRow, BulkImportDialog, BulkImportReviewDialog],
+  imports: [ConfirmDialog, HistoryEntryRow, BulkImportDialog, BulkImportReviewDialog, Paginator],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex items-center justify-between gap-4">
-      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Watch history</h1>
+      <div class="flex flex-col gap-1">
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Watch history</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          {{ totalItems() }} movie{{ totalItems() === 1 ? '' : 's' }}
+        </p>
+      </div>
 
       @switch (importStatus()) {
         @case ('NEEDS_REVIEW') {
@@ -54,11 +87,50 @@ const HISTORY_PAGE_SIZE = 100;
       }
     </div>
 
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+      <input
+        type="search"
+        placeholder="Search by title…"
+        [value]="searchTermRaw()"
+        (input)="onSearchInput($event)"
+        aria-label="Search history by movie title"
+        class="w-full max-w-xs flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+      />
+
+      <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+        Sort by
+        <select
+          [value]="sortBy()"
+          (change)="onSortByChange($event)"
+          aria-label="Sort history by"
+          class="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+        >
+          <option [value]="EHistorySortBy.VIEWED_AT">View date</option>
+          <option [value]="EHistorySortBy.RELEASE_YEAR">Release year</option>
+          <option [value]="EHistorySortBy.TITLE">Title</option>
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="rounded-md border border-gray-300 px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+        [attr.aria-pressed]="sortOrder() === ESortOrder.ASC"
+        aria-label="Toggle sort direction"
+        (click)="toggleSortOrder()"
+      >
+        {{ sortOrder() === ESortOrder.ASC ? '↑ Ascending' : '↓ Descending' }}
+      </button>
+    </div>
+
     @if (loading()) {
       <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Loading…</p>
     } @else if (rows().length === 0) {
       <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-        You haven't logged any movies yet.
+        @if (searchTermRaw()) {
+          No history entries match "{{ searchTermRaw() }}".
+        } @else {
+          You haven't logged any movies yet.
+        }
       </p>
     } @else {
       <ul
@@ -77,6 +149,12 @@ const HISTORY_PAGE_SIZE = 100;
           </li>
         }
       </ul>
+
+      <app-paginator
+        [currentPage]="page()"
+        [totalPages]="totalPages()"
+        (pageChange)="page.set($event)"
+      />
     }
 
     <app-confirm-dialog
@@ -99,9 +177,31 @@ export class History {
   private readonly historyApi = inject(HistoryApiService);
   private readonly bulkImportApi = inject(BulkImportApiService);
   private readonly notificationService = inject(NotificationService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+
+  protected readonly EHistorySortBy = EHistorySortBy;
+  protected readonly ESortOrder = ESortOrder;
+
+  private readonly initialQueryParams = this.route.snapshot.queryParamMap;
 
   protected readonly loading = signal(true);
   protected readonly rows = signal<IHistoryWithMovie[]>([]);
+  protected readonly totalItems = signal(0);
+  protected readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.totalItems() / HISTORY_PAGE_SIZE)),
+  );
+
+  protected readonly searchTermRaw = signal(this.initialQueryParams.get('search') ?? '');
+  private readonly searchTerm = debouncedSignal(this.searchTermRaw, SEARCH_DEBOUNCE_MS);
+  protected readonly sortBy = signal<HistorySortBy>(
+    parseSortBy(this.initialQueryParams.get('sortBy')),
+  );
+  protected readonly sortOrder = signal<SortOrder>(
+    parseSortOrder(this.initialQueryParams.get('sortOrder')),
+  );
+  protected readonly page = signal(parsePage(this.initialQueryParams.get('page')));
+
   protected readonly entryPendingDeletion = signal<IHistoryWithMovie | null>(null);
   protected readonly deleteMessage = computed(
     () =>
@@ -119,8 +219,14 @@ export class History {
       0,
   );
 
+  // Tracks the last-applied filters so page only resets to 1 when search/sort actually change (not on every load).
+  private previousFilters = {
+    search: this.searchTermRaw(),
+    sortBy: this.sortBy(),
+    sortOrder: this.sortOrder(),
+  };
+
   constructor() {
-    this.loadHistory();
     this.bulkImportApi.refreshActiveJob();
 
     effect(() => {
@@ -129,21 +235,80 @@ export class History {
         this.handleImportCompleted(job);
       }
     });
+
+    effect(() => {
+      const search = this.searchTerm();
+      const sortBy = this.sortBy();
+      const sortOrder = this.sortOrder();
+      const changed =
+        search !== this.previousFilters.search ||
+        sortBy !== this.previousFilters.sortBy ||
+        sortOrder !== this.previousFilters.sortOrder;
+      this.previousFilters = { search, sortBy, sortOrder };
+      if (changed) {
+        this.page.set(1);
+      }
+    });
+
+    effect(() => {
+      const query = this.buildQuery();
+      this.loadHistory(query);
+      this.syncQueryParams(query);
+    });
   }
 
-  private loadHistory(): void {
+  private buildQuery(): IHistoryQuery {
+    return {
+      limit: HISTORY_PAGE_SIZE,
+      skip: (this.page() - 1) * HISTORY_PAGE_SIZE,
+      sortOrder: this.sortOrder(),
+      sortBy: this.sortBy(),
+      search: this.searchTerm() || undefined,
+    };
+  }
+
+  private loadHistory(query: IHistoryQuery): void {
     this.loading.set(true);
     this.historyApi
-      .getAllWithMovies({ limit: HISTORY_PAGE_SIZE, sortOrder: ESortOrder.DESC })
+      .getAllWithMovies(query)
       .pipe(
         take(1),
         catchError(() => {
           this.notificationService.error('Failed to load your watch history.');
-          return of<IHistoryWithMovie[]>([]);
+          return of<IPaginatedResult<IHistoryWithMovie>>({ items: [], total: 0 });
         }),
         finalize(() => this.loading.set(false)),
       )
-      .subscribe((rows) => this.rows.set(rows));
+      .subscribe((result) => {
+        this.rows.set(result.items);
+        this.totalItems.set(result.total);
+      });
+  }
+
+  private syncQueryParams(query: IHistoryQuery): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: this.page() > 1 ? this.page() : null,
+        search: query.search ?? null,
+        sortBy: this.sortBy() !== DEFAULT_SORT_BY ? this.sortBy() : null,
+        sortOrder: this.sortOrder() !== DEFAULT_SORT_ORDER ? this.sortOrder() : null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  protected onSearchInput(event: Event): void {
+    this.searchTermRaw.set((event.target as HTMLInputElement).value);
+  }
+
+  protected onSortByChange(event: Event): void {
+    this.sortBy.set((event.target as HTMLSelectElement).value as HistorySortBy);
+  }
+
+  protected toggleSortOrder(): void {
+    this.sortOrder.set(this.sortOrder() === ESortOrder.ASC ? ESortOrder.DESC : ESortOrder.ASC);
   }
 
   private handleImportCompleted(job: IBulkImportJob): void {
@@ -161,7 +326,12 @@ export class History {
     }
     this.notificationService.success(`Import finished: ${parts.join(', ')}.`);
     this.bulkImportApi.clearActiveJob();
-    this.loadHistory();
+
+    if (this.page() === 1) {
+      this.loadHistory(this.buildQuery());
+    } else {
+      this.page.set(1);
+    }
   }
 
   protected saveEdit(row: IHistoryWithMovie, draft: IUpdateHistory): void {
@@ -186,8 +356,12 @@ export class History {
 
     this.historyApi.remove(entry._id).subscribe({
       next: () => {
-        this.rows.update((rows) => rows.filter((row) => row._id !== entry._id));
         this.entryPendingDeletion.set(null);
+        if (this.rows().length === 1 && this.page() > 1) {
+          this.page.update((current) => current - 1);
+        } else {
+          this.loadHistory(this.buildQuery());
+        }
       },
       error: () => {
         this.notificationService.error('Failed to delete this entry.');

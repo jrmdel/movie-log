@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import type { IPaginatedResult } from 'src/common/common.model';
 import type { IAuthenticatedRequest } from 'src/common/types/auth.types';
 import { CreateHistoryDto, GetHistoryQueryDto, UpdateHistoryDto } from 'src/modules/history/history.dto';
 import { IHistoryDocument, IHistoryWithMovie } from 'src/modules/history/history.model';
@@ -19,7 +20,7 @@ export class HistoryController {
   getAllWithMovies(
     @Request() req: IAuthenticatedRequest,
     @Query() query: GetHistoryQueryDto,
-  ): Promise<IHistoryWithMovie[]> {
+  ): Promise<IPaginatedResult<IHistoryWithMovie>> {
     return this.historyService.getForAccountWithMovies(req.user._id, query);
   }
 

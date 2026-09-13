@@ -34,4 +34,13 @@ export interface IUpdateHistory {
 
 export interface IHistoryQuery extends IPaginatedSort {
   movieId?: string;
+  search?: string;
+  sortBy?: HistorySortBy;
 }
+
+export enum EHistorySortBy {
+  VIEWED_AT = 'VIEWED_AT',
+  RELEASE_YEAR = 'RELEASE_YEAR',
+  TITLE = 'TITLE',
+}
+export type HistorySortBy = keyof typeof EHistorySortBy;

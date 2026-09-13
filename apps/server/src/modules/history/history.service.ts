@@ -1,5 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { BaseDatabaseService } from 'src/common/base/base-database.service';
+import { IPaginatedResult } from 'src/common/common.model';
 import {
   ICreateHistory,
   IHistoryDocument,
@@ -23,7 +24,7 @@ export class HistoryService extends BaseDatabaseService {
     return this.historyRepository.findByAccountId(accountId, query);
   }
 
-  async getForAccountWithMovies(accountId: string, query: IHistoryQuery): Promise<IHistoryWithMovie[]> {
+  async getForAccountWithMovies(accountId: string, query: IHistoryQuery): Promise<IPaginatedResult<IHistoryWithMovie>> {
     return this.historyRepository.findByAccountIdWithMovies(accountId, query);
   }
 

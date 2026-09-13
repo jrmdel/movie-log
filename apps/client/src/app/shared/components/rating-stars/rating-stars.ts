@@ -6,7 +6,7 @@ const STAR_VALUES = [1, 2, 3, 4, 5];
   selector: 'app-rating-stars',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="inline-flex items-center gap-0.5" role="img" [attr.aria-label]="ariaLabel()">
+    <div class="inline-flex items-center gap-0.5 -my-2" role="img" [attr.aria-label]="ariaLabel()">
       @for (star of stars; track star) {
         @if (readonly()) {
           <span

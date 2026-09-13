@@ -1,5 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { EListType, ICreateList, IListDocument, type ListType, IUpdateList } from 'src/modules/list/list.model';
+import type { ICreateList, IListDocument, IUpdateList, ListType } from 'src/modules/list/list.model';
+import { EListType } from 'src/modules/list/list.model';
 import { ListRepository } from 'src/modules/list/list.repository';
 import { MovieService } from 'src/modules/movie/movie.service';
 

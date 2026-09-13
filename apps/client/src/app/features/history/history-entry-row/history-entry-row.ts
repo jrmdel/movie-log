@@ -1,9 +1,9 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-
-import { IUpdateHistory, IHistoryWithMovie } from '@src/app/core/models/history.model';
+import { IHistoryWithMovie, IUpdateHistory } from '@src/app/core/models/history.model';
 import { HistoryEntryForm } from '@src/app/shared/components/history-entry-form/history-entry-form';
+import { MovieCardSkeletonComponent } from '@src/app/shared/components/movie-card/movie-card-skeleton';
 import { RatingStars } from '@src/app/shared/components/rating-stars/rating-stars';
 
 function toDateInputValue(value: Date | string | undefined): string {
@@ -13,10 +13,22 @@ function toDateInputValue(value: Date | string | undefined): string {
 // Renders as a flex item pair (display: contents) so it can sit directly inside the parent <li>.
 @Component({
   selector: 'app-history-entry-row',
-  imports: [DatePipe, RatingStars, RouterLink, HistoryEntryForm],
+  imports: [DatePipe, RatingStars, RouterLink, HistoryEntryForm, MovieCardSkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { style: 'display: contents' },
   template: `
+    <div class="max-h-12 w-8 overflow-hidden">
+      @if (!imageLoaded()) {
+        <app-movie-card-skeleton class="block h-12 w-8" />
+      }
+      <img
+        [src]="entry().movie.url"
+        [alt]="entry().movie.title"
+        class="h-12 w-8 object-cover"
+        [hidden]="!imageLoaded()"
+        (load)="imageLoaded.set(true)"
+      />
+    </div>
     <div class="min-w-0 flex-1">
       <a
         [routerLink]="['/movies', entry().movie.externalId]"
@@ -86,14 +98,17 @@ export class HistoryEntryRow {
   protected readonly draftViewedAt = signal('');
   protected readonly draftRating = signal(0);
   protected readonly draftNotes = signal('');
+  protected readonly imageLoaded = signal(false);
 
   constructor() {
     // Resets the draft fields from the entry whenever the row switches into edit mode.
     effect(() => {
+      const entry = this.entry();
+      this.imageLoaded.set(false);
+
       if (!this.editing()) {
         return;
       }
-      const entry = this.entry();
       this.draftViewedAt.set(toDateInputValue(entry.viewedAt));
       this.draftRating.set(entry.rating ?? 0);
       this.draftNotes.set(entry.notes ?? '');
