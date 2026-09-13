@@ -1,6 +1,14 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import { PaginatedSortDto } from 'src/common/common.dto';
-import { ICreateHistory, IHistoryQuery, IUpdateHistory } from 'src/modules/history/history.model';
+import {
+  EHistorySortBy,
+  ICreateHistory,
+  IHistoryQuery,
+  IUpdateHistory,
+  type HistorySortBy,
+} from 'src/modules/history/history.model';
+
+const MAX_SEARCH_LENGTH = 100;
 
 const MIN_RATING = 0;
 const MAX_RATING = 5;
@@ -45,4 +53,13 @@ export class GetHistoryQueryDto extends PaginatedSortDto implements IHistoryQuer
   @IsOptional()
   @IsString()
   movieId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(MAX_SEARCH_LENGTH)
+  search?: string;
+
+  @IsOptional()
+  @IsEnum(EHistorySortBy)
+  sortBy?: HistorySortBy = EHistorySortBy.VIEWED_AT;
 }

@@ -61,7 +61,7 @@ describe('HistoryService', () => {
           createdAt: new Date(),
         },
       };
-      historyRepository.findByAccountIdWithMovies.mockResolvedValue([entryWithMovie]);
+      historyRepository.findByAccountIdWithMovies.mockResolvedValue({ items: [entryWithMovie], total: 1 });
 
       const result = await service.getForAccountWithMovies('account-1', {
         limit: 20,
@@ -74,7 +74,7 @@ describe('HistoryService', () => {
         skip: 0,
         sortOrder: 'DESC',
       });
-      expect(result).toEqual([entryWithMovie]);
+      expect(result).toEqual({ items: [entryWithMovie], total: 1 });
     });
   });
 

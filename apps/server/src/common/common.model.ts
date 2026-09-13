@@ -9,6 +9,11 @@ export interface ISortOrder {
 
 export interface IPaginatedSort extends IPagination, ISortOrder {}
 
+export interface IPaginatedResult<T> {
+  items: T[];
+  total: number;
+}
+
 export enum ESortOrder {
   ASC = 'ASC',
   DESC = 'DESC',
