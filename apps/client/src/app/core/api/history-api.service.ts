@@ -11,6 +11,7 @@ import {
   IHistoryWithMovie,
   IUpdateHistory,
 } from '@src/app/core/models/history.model';
+import { IPaginatedResult } from '@src/app/core/models/common.model';
 import { IMovieDocument } from '@src/app/core/models/movie.model';
 import { environment } from '@src/environments/environment';
 
@@ -35,7 +36,7 @@ export class HistoryApiService {
       sortOrder: ESortOrder.DESC,
     }).pipe(
       take(1),
-      map((entries) => entries.map((entry) => entry.movie)),
+      map((result) => result.items.map((entry) => entry.movie)),
       tap((movies) => {
         this.recentlyWatched.set(movies);
         this.isInitialized.set(true);
@@ -50,8 +51,8 @@ export class HistoryApiService {
   }
 
   // Returns each entry with its movie embedded, avoiding a follow-up bulk movie fetch.
-  getAllWithMovies(query?: IHistoryQuery): Observable<IHistoryWithMovie[]> {
-    return this.http.get<IHistoryWithMovie[]>(`${HISTORY_BASE_URL}/movies`, {
+  getAllWithMovies(query?: IHistoryQuery): Observable<IPaginatedResult<IHistoryWithMovie>> {
+    return this.http.get<IPaginatedResult<IHistoryWithMovie>>(`${HISTORY_BASE_URL}/movies`, {
       params: this.buildQueryParams(query),
     });
   }
@@ -85,6 +86,12 @@ export class HistoryApiService {
     }
     if (query?.sortOrder) {
       params = params.set('sortOrder', query.sortOrder);
+    }
+    if (query?.search) {
+      params = params.set('search', query.search);
+    }
+    if (query?.sortBy) {
+      params = params.set('sortBy', query.sortBy);
     }
     return params;
   }
