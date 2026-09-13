@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { IUpdateHistory, IHistoryWithMovie } from '@src/app/core/models/history.model';
+import { IHistoryWithMovie, IUpdateHistory } from '@src/app/core/models/history.model';
 import { HistoryEntryForm } from '@src/app/shared/components/history-entry-form/history-entry-form';
 import { RatingStars } from '@src/app/shared/components/rating-stars/rating-stars';
 
@@ -17,6 +17,7 @@ function toDateInputValue(value: Date | string | undefined): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { style: 'display: contents' },
   template: `
+    <img [src]="entry().movie.url" [alt]="entry().movie.title" class="h-12 object-cover" />
     <div class="min-w-0 flex-1">
       <a
         [routerLink]="['/movies', entry().movie.externalId]"
