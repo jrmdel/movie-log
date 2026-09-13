@@ -12,8 +12,8 @@ import { catchError, finalize, take } from 'rxjs/operators';
 
 import { BulkImportApiService } from '@src/app/core/api/bulk-import-api.service';
 import { HistoryApiService } from '@src/app/core/api/history-api.service';
-import { IPaginatedResult } from '@src/app/core/models/common.model';
 import { EBulkImportJobStatus, IBulkImportJob } from '@src/app/core/models/bulk-import.model';
+import { IPaginatedResult } from '@src/app/core/models/common.model';
 import {
   EHistorySortBy,
   ESortOrder,
@@ -55,7 +55,12 @@ function parseSortOrder(value: string | null): SortOrder {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex items-center justify-between gap-4">
-      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Watch history</h1>
+      <div class="flex flex-col gap-1">
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Watch history</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          {{ totalItems() }} movie{{ totalItems() === 1 ? '' : 's' }}
+        </p>
+      </div>
 
       @switch (importStatus()) {
         @case ('NEEDS_REVIEW') {
